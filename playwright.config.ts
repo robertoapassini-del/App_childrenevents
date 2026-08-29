@@ -37,9 +37,13 @@ export default defineConfig({
   ],
 
   webServer: {
+    // Defaults to a throwaway SQLite file. Set E2E_DATABASE_URL to run the same
+    // suite against Postgres — worth doing before a deploy, since that's what
+    // production will actually be running on.
+    //
     // MOCK_EXTERNAL stubs geocoding and weather, so the suite doesn't depend on
     // reaching Nominatim or Open-Meteo — or on the network at all.
-    command: `DATABASE_URL="file:./prisma/e2e.db" MOCK_EXTERNAL=1 npx next start -p ${PORT}`,
+    command: `DATABASE_URL="${process.env.E2E_DATABASE_URL ?? "file:./prisma/e2e.db"}" MOCK_EXTERNAL=1 npx next start -p ${PORT}`,
     url: `http://127.0.0.1:${PORT}/api/activities?limit=1`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

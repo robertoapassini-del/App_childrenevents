@@ -48,10 +48,52 @@ MOCK_EXTERNAL=1 npm run dev
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | SQLite path. `file:./prisma/dev.db` for local work. |
+| `DATABASE_URL` | `file:./prisma/dev.db` locally, a `postgresql://` URL when deployed. The provider follows the URL — see below. |
 | `ANTHROPIC_API_KEY` | Enables parsing pasted event text. Without it, the app still runs — link ingestion falls back to the manual form. |
 | `MOCK_EXTERNAL` | `1` to stub Nominatim and Open-Meteo. |
+| `ALLOW_AUTO_SEED` | `1` to fill an **empty** database with the demo content on first request. For fresh deployments on hosts with no shell. |
 | `NEXT_PUBLIC_SITE_URL` | Public base URL, used to build absolute OpenGraph URLs for shared links. |
+
+## Deploying it (and trying it on a phone)
+
+SQLite can't survive on a serverless host — the filesystem is ephemeral — so a
+deployment needs Postgres. The app picks its driver from `DATABASE_URL` at
+runtime, and `scripts/sync-db-provider.mjs` points the Prisma schema at the same
+one at build time, so switching is just the URL.
+
+Anything with a free Postgres works. On **Vercel + Neon**, all of which can be
+done from a phone browser:
+
+1. Create a Postgres database (Neon, Supabase, Vercel Postgres) and copy its
+   connection string.
+2. Import this repo at **vercel.com/new**, selecting the
+   `claude/toddler-activity-map-pwa-fgudse` branch.
+3. Set the environment variables before the first deploy:
+   - `DATABASE_URL` — the Postgres connection string
+   - `ALLOW_AUTO_SEED` — `1`, so the map isn't empty on arrival
+   - `NEXT_PUBLIC_SITE_URL` — your deployment URL, for share previews
+   - `ANTHROPIC_API_KEY` — optional; without it, ingestion falls back to manual entry
+4. Deploy. The build runs `prisma db push`, which creates the tables.
+5. Open it on your phone and **Add to Home Screen**.
+
+Turn `ALLOW_AUTO_SEED` off once the deployment holds submissions worth keeping.
+It only ever runs against a completely empty database and never deletes anything,
+but there's no reason to leave it on.
+
+To check the deploy target before you push to it, run the e2e suite against
+Postgres rather than SQLite:
+
+```bash
+E2E_DATABASE_URL="postgresql://…" npm run test:e2e
+```
+
+### Trying it without deploying
+
+On a laptop on the same Wi-Fi, `npm run dev -- -H 0.0.0.0` and open
+`http://<laptop-ip>:3000` on the phone. Geolocation needs a secure context, so
+the browser will refuse to locate you over plain HTTP from another device — the
+map, filters, detail sheet and submit flow all work, but "près de moi" and
+proximity-verified status reports won't.
 
 ## Testing
 
@@ -144,11 +186,17 @@ followed by hand because `fetch`'s own following would skip the check.
 
 ### Portability
 
-SQLite for now, but nothing SQLite-specific leaks into the model: no Prisma `enum`s
-(SQLite lacks them — the zod enums in [`lib/enums.ts`](lib/enums.ts) are the source
-of truth) and no SQLite-only column types. Moving to Postgres means swapping the
-driver adapter in [`lib/db.ts`](lib/db.ts) and the provider in
-`prisma/schema.prisma`.
+SQLite locally, Postgres deployed, from the same schema. Nothing database-specific
+leaks into the model: no Prisma `enum`s (SQLite lacks them — the zod enums in
+[`lib/enums.ts`](lib/enums.ts) are the source of truth) and no provider-specific
+column types, so the generated client is equivalent either way.
+
+[`lib/db.ts`](lib/db.ts) picks the driver adapter from `DATABASE_URL` at runtime.
+Prisma resolves `datasource provider` at *generate* time and doesn't accept
+`env()` there, so [`scripts/sync-db-provider.mjs`](scripts/sync-db-provider.mjs)
+rewrites that one line from the same URL before `prisma generate`. It runs
+automatically from `npm run build` and `npm run db:generate`. **Adding a Prisma
+enum or a native column type would break the assumption that makes this safe.**
 
 Age, bbox and schedule filtering run in application code against `lib/age` and
 `lib/schedule` rather than as SQL predicates, so those rules have one tested

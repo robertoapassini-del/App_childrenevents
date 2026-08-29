@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { listActivities } from "@/lib/activities";
+import { ensureSeeded } from "@/lib/auto-seed";
 import { ActivityQuery } from "@/lib/schemas";
 import { MapScreen } from "@/components/map-screen";
 
@@ -14,6 +15,10 @@ export default async function HomePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  // No-op unless ALLOW_AUTO_SEED=1 and the database is empty. Lets a fresh
+  // deployment come up with content on a host that gives you no shell.
+  await ensureSeeded();
+
   const params = await searchParams;
   const first = (key: string) => {
     const value = params[key];
