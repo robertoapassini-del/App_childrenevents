@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { useFilters } from "@/lib/use-filters";
 import { useGeolocation } from "@/lib/use-geolocation";
@@ -41,14 +41,25 @@ export function MapScreen({ initialActivities }: { initialActivities: ActivityDT
     null,
   );
 
-  // Refetch whenever the filters change. The first render uses the server's list,
-  // so there's no loading flash on arrival.
-  const [isFirstRender, setIsFirstRender] = useState(true);
+  // Refetch whenever the filters change. The first render can skip it, because
+  // the server already rendered a list for exactly these filters.
+  //
+  // Both latches are refs, not state, and that is load-bearing: with a state
+  // latch, a tap landing before React commits the "no longer first render"
+  // update runs this effect with the stale value, so it consumes the latch and
+  // returns *without fetching* — the filter pill lights up and the list never
+  // changes. Refs mutate synchronously, so there is no window to lose. The
+  // query comparison covers the same race from the other side: if the filters
+  // already moved on from what the server rendered, fetch regardless.
+  const serverQuery = useRef(apiQuery);
+  const hasFetched = useRef(false);
+
   useEffect(() => {
-    if (isFirstRender) {
-      setIsFirstRender(false);
+    if (!hasFetched.current && apiQuery === serverQuery.current) {
+      hasFetched.current = true;
       return;
     }
+    hasFetched.current = true;
 
     const controller = new AbortController();
     setLoading(true);
@@ -70,8 +81,6 @@ export function MapScreen({ initialActivities }: { initialActivities: ActivityDT
       });
 
     return () => controller.abort();
-    // isFirstRender is a one-shot latch, deliberately not a dependency.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiQuery]);
 
   const selected = useMemo(

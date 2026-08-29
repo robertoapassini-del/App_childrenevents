@@ -17,6 +17,13 @@ export const metadata: Metadata = {
     "La carte des sorties, activités et places de jeux pour les 0–5 ans à Lausanne. Sans compte, sans application à installer.",
   applicationName: "Ouistiti",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     title: "Ouistiti",

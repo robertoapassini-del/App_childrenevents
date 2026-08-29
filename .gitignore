@@ -28,5 +28,7 @@ blob-report/
 *.tsbuildinfo
 next-env.d.ts
 
-# Local screenshot helper
-.shot.mjs
+# Local helper scripts (screenshots, icon generation)
+.shot*.mjs
+.icons.mjs
+.debug.mjs
