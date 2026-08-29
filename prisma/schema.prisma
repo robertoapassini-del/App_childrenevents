@@ -1,0 +1,146 @@
+// Ouistiti — schema.
+//
+// Two deliberate constraints keep this portable to Postgres:
+//   1. No Prisma `enum`s. SQLite doesn't support them; every enum-ish column is a
+//      String, validated by the zod enums in lib/enums.ts, which are the single
+//      source of truth for the allowed values.
+//   2. No SQLite-only types. Swapping `provider` below to "postgresql" and pointing
+//      DATABASE_URL at a Postgres instance is the whole migration.
+//
+// `weeklyHours` is the one JSON-ish column, stored as a String because SQLite has no
+// native JSON type. lib/schedule.ts owns its shape (WeeklyHours in lib/enums.ts).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Activity {
+  id String @id @default(cuid())
+
+  /// "EVENT" | "RECURRING" | "PLACE" — see ActivityKind in lib/enums.ts.
+  kind String
+
+  // French is the primary content; English is optional and falls back to French.
+  title         String
+  titleEn       String?
+  description   String?
+  descriptionEn String?
+
+  // Where.
+  venueName  String
+  address    String
+  city       String  @default("Lausanne")
+  postalCode String?
+  lat        Float
+  lng        Float
+
+  // When. EVENT uses startsAt/endsAt; RECURRING and PLACE use weeklyHours,
+  // or alwaysOpen for places with no gate (a park, a playground).
+  startsAt    DateTime?
+  endsAt      DateTime?
+  /// JSON-encoded WeeklyHours: { "mon": [{ "start": "14:00", "end": "17:00" }], ... }
+  weeklyHours String?
+  alwaysOpen  Boolean   @default(false)
+
+  // Who it's for. Months, so the three display age groups are an overlap test
+  // rather than a stored category that would need backfilling if the groups change.
+  ageMinMonths Int @default(0)
+  ageMaxMonths Int @default(60)
+
+  // Cost.
+  priceCents Int?
+  currency   String  @default("CHF")
+  isFree     Boolean @default(false)
+
+  /// Drop-in — no booking, just turn up. The core promise of the app.
+  dropIn Boolean @default(true)
+
+  /// "INDOOR" | "OUTDOOR" | "EITHER"
+  setting String @default("INDOOR")
+
+  /// "OFFICIAL" | "COMMUNITY_VERIFIED" | "UNVERIFIED"
+  verification String @default("UNVERIFIED")
+
+  /// "ACTIVE" | "CANCELLED" | "HIDDEN"
+  status String @default("ACTIVE")
+
+  /// "FACEBOOK" | "EVENTBRITE" | "MEETUP" | "WEB" | "MANUAL" | "SEED"
+  sourceType String  @default("MANUAL")
+  sourceUrl  String?
+
+  submitterId String?
+  submitter   Submitter? @relation(fields: [submitterId], references: [id], onDelete: SetNull)
+
+  reports StatusReport[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startsAt])
+  @@index([lat, lng])
+  @@index([status, kind])
+}
+
+model StatusReport {
+  id String @id @default(cuid())
+
+  activityId String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  /// "STILL_HAPPENING" | "CROWDED" | "CANCELLED"
+  kind String
+
+  // Where the report came from, when the reporter shared it. A report from within
+  // PROXIMITY_RADIUS_M of the activity is what makes it count towards verification.
+  lat             Float?
+  lng             Float?
+  distanceMeters  Float?
+  proximityVerified Boolean @default(false)
+
+  submitterId String
+  submitter   Submitter @relation(fields: [submitterId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([activityId, createdAt])
+  @@index([submitterId, activityId, createdAt])
+}
+
+/// An anonymous identity, held in the httpOnly `oui_sid` cookie. There is no
+/// registration anywhere in the product; this exists only to rate-limit reports
+/// and to let a reliable reporter's word count for more over time.
+model Submitter {
+  id    String @id @default(cuid())
+  token String @unique
+
+  trustScore      Int @default(0)
+  verifiedReports Int @default(0)
+
+  activities Activity[]
+  reports    StatusReport[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GeocodeCache {
+  id          String   @id @default(cuid())
+  query       String   @unique
+  lat         Float
+  lng         Float
+  displayName String?
+  fetchedAt   DateTime @default(now())
+}
+
+model WeatherCache {
+  id        String   @id @default(cuid())
+  /// Rounded lat/lng plus the ISO hour, e.g. "46.52,6.63@2026-08-29T14".
+  key       String   @unique
+  payload   String
+  fetchedAt DateTime @default(now())
+}

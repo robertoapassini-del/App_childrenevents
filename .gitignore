@@ -1,0 +1,29 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Local env
+.env
+.env*.local
+!.env.example
+
+# Prisma / SQLite
+*.db
+*.db-journal
+prisma/dev.db*
+lib/generated/
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# Misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+next-env.d.ts
