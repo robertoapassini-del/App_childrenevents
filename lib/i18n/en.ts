@@ -125,6 +125,8 @@ export const en: Dictionary = {
     manualEntry: "Fill it in myself",
     facebookWall:
       "Facebook won't let us read that page without an account. Copy the event text and paste it below — that works well.",
+    couldNotRead:
+      "We couldn't read that page. Paste the event text below and we'll manage.",
     partialResult:
       "We got some of it. Check anything highlighted before you save.",
     noApiKey:

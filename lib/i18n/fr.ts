@@ -133,6 +133,8 @@ export const fr = {
     manualEntry: "Saisir à la main",
     facebookWall:
       "Facebook ne nous laisse pas lire cette page sans compte. Copiez le texte de l'événement et collez-le ci-dessous — ça marche très bien.",
+    couldNotRead:
+      "On n'a pas réussi à lire cette page. Collez le texte de l'événement ci-dessous, on s'en sortira.",
     partialResult:
       "On a trouvé une partie des infos. Vérifiez ce qui est surligné avant d'enregistrer.",
     noApiKey:
