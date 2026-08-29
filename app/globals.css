@@ -90,15 +90,18 @@
   }
 }
 
-@layer components {
-  /* Every interactive control clears the 48px one-handed tap target. */
-  .tap {
-    min-height: 2.75rem;
-    min-width: 2.75rem;
-  }
+/* Every interactive control clears a 48px tap target. Declared with @utility
+   rather than as a plain class so the component rules below can @apply it. */
+@utility tap {
+  min-height: 3rem;
+  min-width: 3rem;
+}
 
+@layer components {
+  /* shrink-0 matters: these live in a horizontally scrolling flex row, and
+     without it flexbox shrinks each pill to its min-width and clips the label. */
   .pill {
-    @apply tap inline-flex items-center gap-1.5 rounded-full border-2 px-3.5 text-sm font-bold whitespace-nowrap transition-colors;
+    @apply tap inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-4 text-sm font-bold whitespace-nowrap transition-colors;
   }
 
   .pill-off {

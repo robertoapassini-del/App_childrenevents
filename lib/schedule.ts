@@ -115,6 +115,16 @@ export function zonedTimeToUtc(
     : new Date(naive - secondOffset);
 }
 
+/**
+ * "YYYY-MM-DD" for the Lausanne day containing this instant. Comparing these is
+ * how "is it today?" gets answered — `Date.toDateString()` would answer it in the
+ * viewer's own timezone, which is the wrong question for a Lausanne activity.
+ */
+export function zonedDayKey(date: Date): string {
+  const p = zonedParts(date);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+}
+
 /** Midnight, local time, on the day containing `date`. */
 export function startOfZonedDay(date: Date): Date {
   const p = zonedParts(date);

@@ -27,3 +27,6 @@ blob-report/
 *.pem
 *.tsbuildinfo
 next-env.d.ts
+
+# Local screenshot helper
+.shot.mjs

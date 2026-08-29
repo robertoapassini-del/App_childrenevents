@@ -8,6 +8,7 @@ import {
   occursWithin,
   startOfZonedDay,
   weekendWindow,
+  zonedDayKey,
   zonedParts,
   zonedTimeToUtc,
   type SchedulableActivity,
@@ -79,6 +80,26 @@ describe("startOfZonedDay / endOfZonedDay", () => {
     // 23:30 local on 15 July is 21:30 UTC — the UTC date has not yet rolled over.
     const lateEvening = new Date("2026-07-15T21:30:00.000Z");
     expect(zonedParts(startOfZonedDay(lateEvening)).day).toBe(15);
+  });
+});
+
+describe("zonedDayKey", () => {
+  it("groups an instant onto its Lausanne day", () => {
+    expect(zonedDayKey(new Date("2026-07-15T08:00:00.000Z"))).toBe("2026-07-15");
+  });
+
+  it("puts a late-evening local time on the local day, not the UTC one", () => {
+    // 00:30 on the 16th in Lausanne is still the 15th in UTC.
+    expect(zonedDayKey(new Date("2026-07-15T22:30:00.000Z"))).toBe("2026-07-16");
+  });
+
+  it("puts an early-hours UTC time on the right local day", () => {
+    // 01:00 UTC on the 16th is 03:00 local on the 16th.
+    expect(zonedDayKey(new Date("2026-07-16T01:00:00.000Z"))).toBe("2026-07-16");
+  });
+
+  it("zero-pads so keys sort and compare as strings", () => {
+    expect(zonedDayKey(new Date("2026-01-05T12:00:00.000Z"))).toBe("2026-01-05");
   });
 });
 
