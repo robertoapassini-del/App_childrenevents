@@ -40,6 +40,46 @@ test("the map loads with activities and a legend", async ({ page }) => {
   await expect(page.locator(".ouistiti-pin").first()).toBeVisible();
 });
 
+test("the bottom sheet moves between its two positions", async ({ page }) => {
+  await page.goto("/");
+
+  const sheet = page.getByRole("region", { name: /carte/i });
+  const handle = page.getByRole("button", { name: /agrandir ou réduire/i });
+
+  await expect(handle).toHaveAttribute("aria-expanded", "false");
+  const peek = (await sheet.boundingBox())!.height;
+
+  await handle.click();
+  await expect(handle).toHaveAttribute("aria-expanded", "true");
+  // The transition has to finish before the height means anything.
+  await expect
+    .poll(async () => (await sheet.boundingBox())!.height, { timeout: 5000 })
+    .toBeGreaterThan(peek * 1.5);
+
+  await handle.click();
+  await expect(handle).toHaveAttribute("aria-expanded", "false");
+  await expect
+    .poll(async () => (await sheet.boundingBox())!.height, { timeout: 5000 })
+    .toBeCloseTo(peek, 0);
+});
+
+test("overlapping pins collapse into a counted cluster", async ({ page }) => {
+  await page.goto("/");
+
+  // Central Lausanne puts several activities within a few hundred metres, so at
+  // the default zoom at least one cluster must exist rather than a pin stack.
+  const clusters = page.locator(".ouistiti-cluster");
+  await expect(clusters.first()).toBeVisible();
+
+  // A cluster shows how many it stands for.
+  await expect(clusters.first()).toHaveText(/^\d+$/);
+
+  // Zooming right in must break them apart again.
+  await page.locator(".ouistiti-cluster").first().click();
+  await page.waitForTimeout(1200);
+  await expect(page.locator(".ouistiti-pin").first()).toBeVisible();
+});
+
 test("filtering by age narrows the list and survives a reload", async ({ page }) => {
   await page.goto("/");
   const before = await page.locator(CARD).count();

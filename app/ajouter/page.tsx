@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AddForm } from "@/components/add-form";
+import { BackIcon } from "@/components/icons";
 import { getDictionary } from "@/lib/i18n";
 import { isParsingAvailable } from "@/lib/ingest";
 import { getLocale } from "@/lib/locale-server";
@@ -21,7 +22,7 @@ export default async function AddPage() {
         href="/"
         className="tap inline-flex items-center gap-1.5 text-sm font-bold text-ouistiti-700 hover:underline"
       >
-        <span aria-hidden="true">←</span>
+        <BackIcon className="text-base" />
         {t.nav.backToMap}
       </Link>
 

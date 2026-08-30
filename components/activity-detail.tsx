@@ -7,6 +7,7 @@ import { formatPrice, localizedField } from "@/lib/i18n";
 import { useI18n, useRelativeTime } from "@/lib/i18n/context";
 import type { ActivityDTO } from "@/lib/activities";
 import { AgeBadge, SettingBadge, VerificationBadge, WeatherBadge } from "./badges";
+import { CloseIcon, DirectionsIcon, ShareIcon } from "./icons";
 import { StatusButtons } from "./status-buttons";
 
 /** Opening hours, rendered as the week rather than as a JSON blob. */
@@ -164,7 +165,7 @@ export function ActivityDetailBody({
             rel="noopener noreferrer"
             className="tap inline-flex items-center gap-1.5 rounded-full border-2 border-ouistiti-300 bg-white px-3.5 text-sm font-bold text-ouistiti-800 hover:bg-ouistiti-50"
           >
-            <span aria-hidden="true">➤</span>
+            <DirectionsIcon className="text-base" />
             {t.activity.directions}
           </a>
           <button
@@ -172,7 +173,7 @@ export function ActivityDetailBody({
             onClick={share}
             className="tap inline-flex items-center gap-1.5 rounded-full border-2 border-ouistiti-300 bg-white px-3.5 text-sm font-bold text-ouistiti-800 hover:bg-ouistiti-50"
           >
-            <span aria-hidden="true">↗</span>
+            <ShareIcon className="text-base" />
             {copied ? t.activity.linkCopied : t.activity.share}
           </button>
         </div>
@@ -249,7 +250,7 @@ export function ActivityDetail({
           onClick={onClose}
           className="tap absolute top-2.5 right-2.5 grid place-items-center rounded-full border-2 border-ouistiti-200 bg-white text-lg font-bold text-ink-soft hover:bg-ouistiti-50"
         >
-          <span aria-hidden="true">✕</span>
+          <CloseIcon className="text-base" />
           <span className="sr-only">{t.a11y.closeDetail}</span>
         </button>
 

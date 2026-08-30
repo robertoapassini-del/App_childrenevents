@@ -12,6 +12,8 @@ import { FilterBar } from "./filter-bar";
 import { AgeGroupLegend } from "./badges";
 import { ActivityDetail } from "./activity-detail";
 import { LanguageToggle } from "./language-toggle";
+import { NearMeIcon, PlusIcon } from "./icons";
+import { useSheet } from "@/lib/use-sheet";
 
 // Leaflet reaches for `window` at import time, so the map can only load in the
 // browser. The placeholder keeps the layout from jumping when it arrives.
@@ -33,6 +35,7 @@ export function MapScreen({ initialActivities }: { initialActivities: ActivityDT
   const controls = useFilters();
   const { filters, apiQuery, selectActivity } = controls;
   const geo = useGeolocation();
+  const sheet = useSheet();
 
   const [activities, setActivities] = useState(initialActivities);
   const [loading, setLoading] = useState(false);
@@ -128,7 +131,8 @@ export function MapScreen({ initialActivities }: { initialActivities: ActivityDT
               href="/ajouter"
               className="tap inline-flex items-center rounded-full bg-ouistiti-500 px-4 text-sm font-bold text-white shadow-sm hover:bg-ouistiti-600"
             >
-              + {t.nav.add}
+              <PlusIcon className="mr-0.5 text-base" />
+              {t.nav.add}
             </Link>
           </div>
         </div>
@@ -152,22 +156,35 @@ export function MapScreen({ initialActivities }: { initialActivities: ActivityDT
             disabled={geo.isLocating}
             className="tap absolute top-3 right-3 z-[400] inline-flex items-center gap-1.5 rounded-full border-2 border-ouistiti-200 bg-white px-3.5 text-sm font-bold text-ink shadow-md disabled:opacity-60"
           >
-            <span aria-hidden="true">◎</span>
+            <NearMeIcon className="text-base" />
             {geo.isLocating ? t.status.locating : t.filters.nearMe}
           </button>
         </div>
 
-        {/* The feed. A bottom sheet on mobile, a fixed column on desktop. */}
+        {/* The feed. A draggable bottom sheet on mobile, a fixed column on
+            desktop, where there's room for both at once and no gesture needed. */}
         <section
           aria-label={t.nav.map}
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[450] max-h-[58%] lg:pointer-events-auto lg:relative lg:inset-auto lg:max-h-none lg:w-[27rem] lg:shrink-0 lg:border-l-2 lg:border-ouistiti-100"
+          style={{ height: `${sheet.height * 100}%` }}
+          className={`absolute inset-x-0 bottom-0 z-[450] lg:relative lg:inset-auto lg:!h-auto lg:w-[27rem] lg:shrink-0 lg:border-l-2 lg:border-ouistiti-100 ${
+            sheet.isDragging ? "" : "transition-[height] duration-200 ease-out"
+          }`}
         >
-          <div className="pointer-events-auto flex h-full flex-col rounded-t-[var(--radius-blob)] border-t-2 border-ouistiti-200 bg-cream shadow-[0_-6px_24px_rgba(42,31,26,.14)] lg:rounded-none lg:border-t-0 lg:shadow-none">
-            <div className="flex items-center justify-between gap-2 px-4 pt-2.5 pb-1.5">
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-0 top-1.5 mx-auto h-1 w-10 rounded-full bg-ouistiti-200 lg:hidden"
-              />
+          <div className="relative flex h-full flex-col rounded-t-[var(--radius-blob)] border-t-2 border-ouistiti-200 bg-cream shadow-[0_-6px_24px_rgba(42,31,26,.14)] lg:rounded-none lg:border-t-0 lg:shadow-none">
+            {/* The grab area. A real target, not a decorative line: it drags,
+                it responds to a tap, and it is reachable from the keyboard. */}
+            <button
+              type="button"
+              {...sheet.handleProps}
+              onClick={sheet.toggle}
+              aria-expanded={sheet.position === "expanded"}
+              aria-label={t.a11y.toggleSheet}
+              className="group absolute inset-x-0 top-0 z-10 flex h-7 touch-none items-center justify-center lg:hidden"
+            >
+              <span className="h-1.5 w-12 rounded-full bg-ouistiti-300 transition-colors group-hover:bg-ouistiti-400" />
+            </button>
+
+            <div className="flex items-center justify-between gap-2 px-4 pt-6 pb-1.5 lg:pt-2.5">
               <p className="text-sm font-extrabold text-ink">
                 {loading
                   ? t.empty.loading

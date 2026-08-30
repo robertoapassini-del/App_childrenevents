@@ -3,6 +3,7 @@
 import { AGE_GROUPS } from "@/lib/age";
 import { useI18n } from "@/lib/i18n/context";
 import type { useFilters } from "@/lib/use-filters";
+import { AgeIcon, IndoorIcon, OutdoorIcon } from "./icons";
 
 type FilterControls = ReturnType<typeof useFilters>;
 
@@ -10,14 +11,14 @@ function Pill({
   active,
   onClick,
   children,
-  glyph,
-  glyphColor,
+  icon,
+  iconColor,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
-  glyph?: string;
-  glyphColor?: string;
+  icon?: React.ReactNode;
+  iconColor?: string;
 }) {
   return (
     <button
@@ -26,13 +27,15 @@ function Pill({
       aria-pressed={active}
       className={`pill ${active ? "pill-on" : "pill-off"}`}
     >
-      {glyph ? (
+      {icon ? (
+        // Selected pills are solid, so the mark goes white with the label;
+        // unselected ones keep the group's colour as a second cue.
         <span
           aria-hidden="true"
-          className="text-[11px]"
-          style={active ? undefined : { color: glyphColor }}
+          className="text-sm"
+          style={active ? undefined : { color: iconColor }}
         >
-          {glyph}
+          {icon}
         </span>
       ) : null}
       {children}
@@ -56,8 +59,8 @@ export function FilterBar({ controls }: { controls: FilterControls }) {
           key={group.id}
           active={filters.age.includes(group.id)}
           onClick={() => toggleAge(group.id)}
-          glyph={group.glyph}
-          glyphColor={group.colorVar}
+          icon={<AgeIcon id={group.icon} />}
+          iconColor={group.colorVar}
         >
           {t.filters[group.id]}
         </Pill>
@@ -68,14 +71,14 @@ export function FilterBar({ controls }: { controls: FilterControls }) {
       <Pill
         active={filters.setting.includes("INDOOR")}
         onClick={() => toggleSetting("INDOOR")}
-        glyph="⌂"
+        icon={<IndoorIcon />}
       >
         {t.filters.indoor}
       </Pill>
       <Pill
         active={filters.setting.includes("OUTDOOR")}
         onClick={() => toggleSetting("OUTDOOR")}
-        glyph="❋"
+        icon={<OutdoorIcon />}
       >
         {t.filters.outdoor}
       </Pill>

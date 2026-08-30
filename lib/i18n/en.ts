@@ -192,5 +192,6 @@ export const en: Dictionary = {
     openDetail: "See details for {title}",
     filterGroup: "Filters",
     ageGroupLegend: "Colour key by age",
+    toggleSheet: "Expand or collapse the list",
   },
 };

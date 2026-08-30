@@ -6,6 +6,7 @@ import { formatAgeRange } from "@/lib/age";
 import { getDictionary, localizedField } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale-server";
 import { ActivityDetailBody } from "@/components/activity-detail";
+import { BackIcon } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +62,7 @@ export default async function ActivityPage({
         href="/"
         className="tap inline-flex items-center gap-1.5 text-sm font-bold text-ouistiti-700 hover:underline"
       >
-        <span aria-hidden="true">←</span>
+        <BackIcon className="text-base" />
         {t.nav.backToMap}
       </Link>
 

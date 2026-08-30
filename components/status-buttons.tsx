@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { useGeolocation } from "@/lib/use-geolocation";
 import type { ReportKind } from "@/lib/enums";
 import type { ActivityDTO } from "@/lib/activities";
+import { CancelledIcon, CrowdedIcon, HappeningIcon } from "./icons";
 
 interface ReportResponse {
   recorded: boolean;
@@ -24,23 +25,23 @@ type Feedback =
 
 const BUTTONS: {
   kind: ReportKind;
-  glyph: string;
+  Icon: typeof HappeningIcon;
   className: string;
 }[] = [
   {
     kind: "STILL_HAPPENING",
-    glyph: "✋",
+    Icon: HappeningIcon,
     className: "border-fern-600 bg-fern-500 text-white hover:bg-fern-600",
   },
   {
     kind: "CROWDED",
-    glyph: "▩",
+    Icon: CrowdedIcon,
     className:
       "border-ouistiti-600 bg-ouistiti-400 text-ouistiti-900 hover:bg-ouistiti-500",
   },
   {
     kind: "CANCELLED",
-    glyph: "✕",
+    Icon: CancelledIcon,
     className: "border-plum-900 bg-plum-700 text-white hover:bg-plum-600",
   },
 ];
@@ -125,9 +126,7 @@ export function StatusButtons({
             onClick={() => report(button.kind)}
             className={`tap flex flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-2 py-2 text-xs leading-tight font-bold transition-transform active:scale-95 disabled:opacity-60 ${button.className}`}
           >
-            <span aria-hidden="true" className="text-base">
-              {button.glyph}
-            </span>
+            <button.Icon className="text-lg" />
             {labels[button.kind]}
           </button>
         ))}

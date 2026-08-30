@@ -11,9 +11,17 @@ export interface AgeGroup {
   minMonths: number;
   /** Exclusive upper bound. */
   maxMonths: number;
-  /** Paired with the colour everywhere, so the coding survives colourblindness. */
-  glyph: string;
+  /**
+   * Shape drawn alongside the colour, so the coding survives colourblindness.
+   * The three are a ring, a triangle and a diamond — no shared silhouette, and
+   * each stays distinct at 12px. Rendered from AGE_ICON_PATHS in
+   * components/icons.tsx; this is the key, not a character, because a font is
+   * not something to bet an accessibility affordance on.
+   */
+  icon: AgeGroupId;
   colorVar: string;
+  /** Hex twin of colorVar, for canvases and any context without CSS variables. */
+  colorHex: string;
 }
 
 export const AGE_GROUPS: readonly AgeGroup[] = [
@@ -21,22 +29,25 @@ export const AGE_GROUPS: readonly AgeGroup[] = [
     id: "infant",
     minMonths: 0,
     maxMonths: 12,
-    glyph: "◍",
+    icon: "infant",
     colorVar: "var(--color-sky-ish-500)",
+    colorHex: "#2e86c1",
   },
   {
     id: "toddler",
     minMonths: 12,
     maxMonths: 36,
-    glyph: "▲",
+    icon: "toddler",
     colorVar: "var(--color-ouistiti-500)",
+    colorHex: "#f2820d",
   },
   {
     id: "preschool",
     minMonths: 36,
     maxMonths: 60,
-    glyph: "◆",
+    icon: "preschool",
     colorVar: "var(--color-fern-500)",
+    colorHex: "#2fa36b",
   },
 ] as const;
 

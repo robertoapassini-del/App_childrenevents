@@ -204,6 +204,7 @@ export const fr = {
     openDetail: "Voir le détail de {title}",
     filterGroup: "Filtres",
     ageGroupLegend: "Code couleur par âge",
+    toggleSheet: "Agrandir ou réduire la liste",
   },
 } as const;
 

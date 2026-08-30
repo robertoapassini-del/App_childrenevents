@@ -7,6 +7,7 @@ import {
   matchesAgeFilter,
   overlapsAgeGroup,
 } from "@/lib/age";
+import { AGE_ICON_PATHS } from "@/components/icons";
 
 const range = (ageMinMonths: number, ageMaxMonths: number) => ({
   ageMinMonths,
@@ -64,9 +65,25 @@ describe("matchesAgeFilter", () => {
 });
 
 describe("age group definitions", () => {
-  it("gives every group a distinct glyph, so colour is never the only cue", () => {
-    const glyphs = AGE_GROUPS.map((g) => g.glyph);
-    expect(new Set(glyphs).size).toBe(AGE_GROUPS.length);
+  it("gives every group a distinct shape, so colour is never the only cue", () => {
+    const icons = AGE_GROUPS.map((g) => g.icon);
+    expect(new Set(icons).size).toBe(AGE_GROUPS.length);
+  });
+
+  it("has a drawable path for every group's shape", () => {
+    // The shapes used to be text characters, which render as emoji or tofu
+    // depending on the font. If a group ever loses its path, the colourblind
+    // fallback silently disappears — so assert the paths exist.
+    for (const group of AGE_GROUPS) {
+      expect(AGE_ICON_PATHS[group.icon]?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("gives every group a hex colour matching its CSS variable name", () => {
+    for (const group of AGE_GROUPS) {
+      expect(group.colorHex).toMatch(/^#[0-9a-f]{6}$/);
+      expect(group.colorVar).toMatch(/^var\(--color-/);
+    }
   });
 
   it("covers 0–60 months with no gaps between groups", () => {

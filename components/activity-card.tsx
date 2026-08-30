@@ -62,7 +62,7 @@ export function ActivityCard({
         type="button"
         onClick={() => onSelect(activity)}
         aria-label={fmt(t.a11y.openDetail, { title })}
-        className={`card w-full text-left transition-transform active:scale-[0.99] ${
+        className={`card-compact w-full text-left transition-transform active:scale-[0.99] ${
           selected ? "border-ouistiti-500 ring-2 ring-ouistiti-300" : ""
         } ${cancelled ? "opacity-70" : ""}`}
       >
@@ -71,46 +71,39 @@ export function ActivityCard({
             <p className="text-xs font-bold tracking-wide text-ouistiti-700 uppercase">
               {whenLabel(activity)}
             </p>
-            <h3 className="mt-0.5 truncate text-base leading-snug font-extrabold text-ink">
+            <h3 className="truncate text-base leading-snug font-extrabold text-ink">
               {cancelled ? <s>{title}</s> : title}
             </h3>
-            <p className="mt-0.5 truncate text-sm text-ink-soft">
-              {activity.venueName}
-            </p>
+            <p className="truncate text-sm text-ink-soft">{activity.venueName}</p>
           </div>
-          {activity.weather ? <WeatherBadge weather={activity.weather} /> : null}
+          {/* Status lives in its own right-hand column: both of these answer
+              "should I go", which is a different question from "is this for us"
+              — and keeping them out of the badge row is what stops it wrapping. */}
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            {activity.weather ? <WeatherBadge weather={activity.weather} /> : null}
+            <VerificationBadge verification={activity.verification} />
+          </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        {/* One row, not three. Drop-in and the weather warning live in the detail
+            view: nearly everything here is drop-in, so the tag carried little
+            signal, and the weather badge's colour already says "plan B". */}
+        <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1">
           {activity.ageGroups.map((id) => (
             <AgeBadge key={id} id={id} showLabel={false} />
           ))}
           <span className="text-xs font-semibold text-ink-soft">
             {formatAgeRange(activity, locale)}
           </span>
-          <SettingBadge setting={activity.effectiveSetting} />
+          <SettingBadge setting={activity.effectiveSetting} compact />
           {price ? (
             <span className="rounded-full bg-ouistiti-100 px-2 py-0.5 text-xs font-bold text-ouistiti-800">
               {price}
             </span>
           ) : null}
-          {activity.dropIn ? (
-            <span className="rounded-full bg-fern-100 px-2 py-0.5 text-xs font-bold text-fern-700">
-              {t.activity.dropIn}
-            </span>
-          ) : null}
-        </div>
-
-        <div className="mt-2.5 flex flex-wrap items-center gap-2">
-          <VerificationBadge verification={activity.verification} />
           {cancelled ? (
             <span className="rounded-full bg-plum-100 px-2 py-0.5 text-xs font-bold text-plum-700">
               {t.activity.cancelled}
-            </span>
-          ) : null}
-          {activity.weatherWarning ? (
-            <span className="text-xs font-semibold text-plum-700">
-              {t.activity.weatherWarning}
             </span>
           ) : null}
         </div>
