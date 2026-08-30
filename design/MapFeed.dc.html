@@ -7,7 +7,7 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap">
   <style>
     body { margin: 0; font-family: "Quicksand", "Nunito", ui-rounded, system-ui, sans-serif; }
     a { color: #a94e02; } a:hover { color: #7d3b08; }
@@ -45,7 +45,7 @@
   </div>
 
   <!-- Map. Tiles are stylised: OpenStreetMap can't be reached from a canvas. -->
-  <div style="position: absolute; top: 148px; left: 0; right: 0; bottom: 0; background: #e9e0d3; overflow: hidden;">
+  <div style="position: absolute; top: 126px; left: 0; right: 0; bottom: 0; background: #e9e0d3; overflow: hidden;">
     <svg viewBox="0 0 390 700" width="390" height="700" aria-hidden="true" style="display: block;">
       <rect width="390" height="700" fill="#e9e0d3"/>
       <path d="M-10 120 H400 M-10 330 H400 M-10 520 H400 M70 -10 V710 M210 -10 V710 M320 -10 V710" stroke="#dccfbd" stroke-width="9" fill="none"/>
@@ -63,11 +63,11 @@
     <span style="position: absolute; top: 96px; left: 68px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: #f2820d; border: 3px solid #ffffff; box-shadow: 0 2px 6px rgba(42,31,26,.35); color: #ffffff;">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.5 20 19H4Z"/></svg>
     </span>
-    <span style="position: absolute; top: 150px; left: 244px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: #2e86c1; border: 3px solid #2fa36b; box-shadow: 0 2px 6px rgba(42,31,26,.35); color: #ffffff;">
+    <span style="position: absolute; top: 150px; left: 244px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: #2e86c1; border: 3px solid #2a1f1a; box-shadow: 0 2px 6px rgba(42,31,26,.35); color: #ffffff;">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Z"/><path d="M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>
     </span>
     <span style="position: absolute; top: 224px; left: 132px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; background: #a94e02; border: 3px solid #ffffff; box-shadow: 0 2px 8px rgba(42,31,26,.4); color: #ffffff; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;">4</span>
-    <span style="position: absolute; top: 268px; left: 296px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: #2fa36b; border: 3px solid #2fa36b; box-shadow: 0 2px 6px rgba(42,31,26,.35); color: #ffffff;">
+    <span style="position: absolute; top: 268px; left: 296px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 999px; background: #2fa36b; border: 3px solid #2a1f1a; box-shadow: 0 2px 6px rgba(42,31,26,.35); color: #ffffff;">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 20.5 12 12 20.5 3.5 12Z"/></svg>
     </span>
     <span style="position: absolute; top: 316px; left: 52px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; background: #a94e02; border: 3px solid #ffffff; box-shadow: 0 2px 8px rgba(42,31,26,.4); color: #ffffff; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;">2</span>
@@ -104,7 +104,7 @@
           <div style="min-width: 0; flex: 1;">
             <p style="margin: 0; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #a94e02;">Aujourd'hui · 10:00</p>
             <p style="margin: 0; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">L'heure du conte</p>
-            <p style="margin: 0; font-size: 14px; color: #6b5b51; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Bibliothèque de Chauderon</p>
+            <p style="margin: 0; font-size: 14px; color: #6b5b51; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Bibliothèque municipale de Chauderon</p>
           </div>
           <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0;">
             <span style="display: inline-flex; align-items: center; gap: 4px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; color: #196644;">
@@ -120,7 +120,7 @@
         <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px;">
           <span style="display: inline-flex; align-items: center; border-radius: 999px; background: #f2820d; color: #ffffff; padding: 2px 8px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.5 20 19H4Z"/></svg></span>
           <span style="display: inline-flex; align-items: center; border-radius: 999px; background: #2fa36b; color: #ffffff; padding: 2px 8px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 20.5 12 12 20.5 3.5 12Z"/></svg></span>
-          <span style="font-size: 12px; font-weight: 700; color: #6b5b51;">1.5–4 ans</span>
+          <span style="font-size: 12px; font-weight: 700; color: #6b5b51;">1,5–4 ans</span>
           <span style="display: inline-flex; align-items: center; border-radius: 999px; background: #fdeedd; color: #6b5b51; padding: 2px 8px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11 12 4l8 7"/><path d="M6.5 9.5V20h11V9.5"/></svg></span>
           <span style="border-radius: 999px; background: #ffe9c7; color: #7d3b08; padding: 2px 8px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;">Gratuit</span>
         </div>

@@ -108,6 +108,16 @@ describe("formatAgeRange", () => {
   });
 
   it("keeps a half year readable rather than rounding it away", () => {
-    expect(formatAgeRange(range(18, 60), "fr")).toBe("1.5–5 ans");
+    expect(formatAgeRange(range(18, 60), "en")).toBe("1.5–5 yrs");
+  });
+
+  it("writes a decimal comma in French, not a point", () => {
+    // "1.5 ans" is an anglicism a Swiss French reader would notice immediately.
+    expect(formatAgeRange(range(18, 60), "fr")).toBe("1,5–5 ans");
+    expect(formatAgeRange(range(6, 54), "fr")).toBe("0,5–4,5 ans");
+  });
+
+  it("still writes a decimal point in English", () => {
+    expect(formatAgeRange(range(6, 54), "en")).toBe("0.5–4.5 yrs");
   });
 });

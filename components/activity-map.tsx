@@ -23,7 +23,11 @@ const DEFAULT_ZOOM = 14;
 function pinFor(activity: ActivityDTO, selected: boolean): L.DivIcon {
   const group = getAgeGroup(activity.ageGroups[0] ?? "toddler");
   const cancelled = activity.status === "CANCELLED";
-  const ring = activity.effectiveSetting === "OUTDOOR" ? "#2fa36b" : "#ffffff";
+  // Dark for outdoors, white for indoors. The ring was fern green, which is
+  // also the preschool group's fill — so every outdoor preschool pin was green
+  // on green and its ring simply did not exist. Ink contrasts with all three
+  // group colours, which is the whole job of this ring.
+  const ring = activity.effectiveSetting === "OUTDOOR" ? "#2a1f1a" : "#ffffff";
   const size = selected ? 40 : 32;
 
   const mark = cancelled

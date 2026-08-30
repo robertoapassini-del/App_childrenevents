@@ -1,4 +1,5 @@
 import type { AgeGroupId } from "./enums";
+import { localeTag } from "./i18n";
 
 /**
  * Ages are stored on the activity as a month range, not as a group. The three
@@ -101,9 +102,11 @@ export function formatAgeRange(
   // Under two years, months are what parents actually think in.
   if (max <= 24) return `${min}–${max} ${monthUnit}`;
 
-  const minYears = min / 12;
-  const maxYears = max / 12;
-  const fmt = (n: number) =>
-    Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, "");
-  return `${fmt(minYears)}–${fmt(maxYears)} ${yearUnit}`;
+  // French writes a decimal comma: "1,5 ans", never "1.5 ans". Intl gets that
+  // right per locale, where hand-rolled toFixed() silently wrote English
+  // punctuation into every French age range on the map.
+  const format = new Intl.NumberFormat(localeTag(locale), {
+    maximumFractionDigits: 1,
+  });
+  return `${format.format(min / 12)}–${format.format(max / 12)} ${yearUnit}`;
 }
