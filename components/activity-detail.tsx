@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { formatAgeRange } from "@/lib/age";
 import { parseWeeklyHours, WEEKDAYS } from "@/lib/enums";
 import { formatPrice, localizedField } from "@/lib/i18n";
@@ -34,7 +34,7 @@ function OpeningHours({ weeklyHours }: { weeklyHours: string | null }) {
 }
 
 export function ActivityDetailBody({
-  activity,
+  activity: initialActivity,
   onUpdated,
 }: {
   activity: ActivityDTO;
@@ -43,6 +43,35 @@ export function ActivityDetailBody({
   const { t, locale, formatDate, formatTime } = useI18n();
   const relative = useRelativeTime();
   const [copied, setCopied] = useState(false);
+
+  /**
+   * The badge and report count are held here rather than read straight from the
+   * prop, because this body renders in two places and only one of them has a
+   * parent listening: the map overlay passes `onUpdated`, the shareable
+   * /a/[id] page renders it on its own. Without local state, a parent who taps
+   * "ça a lieu" on a shared link — and whose report is the second one, the one
+   * that verifies the listing — watches the badge keep saying nobody has been
+   * past to check. That is precisely the feedback the feature exists to give.
+   */
+  const [activity, setActivity] = useState(initialActivity);
+
+  // The map overlay swaps which activity this shows without remounting, so the
+  // local copy has to follow the prop. Adjusted during render rather than in an
+  // effect — React re-runs this component before touching the DOM, where an
+  // effect would paint the previous activity's details for a frame first.
+  const [shownProp, setShownProp] = useState(initialActivity);
+  if (shownProp !== initialActivity) {
+    setShownProp(initialActivity);
+    setActivity(initialActivity);
+  }
+
+  const handleUpdated = useCallback(
+    (next: ActivityDTO) => {
+      setActivity(next);
+      onUpdated?.(next);
+    },
+    [onUpdated],
+  );
 
   const title =
     localizedField(activity.title, activity.titleEn, locale) ?? activity.title;
@@ -179,7 +208,7 @@ export function ActivityDetailBody({
         </div>
       </div>
 
-      <StatusButtons activity={activity} onUpdated={onUpdated} />
+      <StatusButtons activity={activity} onUpdated={handleUpdated} />
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-ouistiti-100 pt-3">
         <VerificationBadge verification={activity.verification} withHint />

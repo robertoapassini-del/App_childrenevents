@@ -189,8 +189,18 @@ test("it takes two parents on site to confirm a listing", async ({
   const secondParent = await secondContext.newPage();
   await stubTiles(secondParent);
   await secondParent.goto(`/a/${target.id}`);
+  await expect(secondParent.getByText("À confirmer")).toBeVisible();
   await secondParent.getByRole("button", { name: /ça a lieu/i }).click();
   await expect(secondParent.getByText(/merci/i)).toBeVisible({ timeout: 15_000 });
+
+  // The badge must flip in place, with no reload. This is the whole feedback
+  // loop: the second reporter is the one whose tap verifies the listing, and
+  // they are the one person guaranteed to be looking at it when it happens.
+  // Asserting only after a reload hid a real bug here — /a/[id] renders the
+  // detail body with no parent listening for the update.
+  await expect(secondParent.getByText("Confirmé par des parents")).toBeVisible({
+    timeout: 10_000,
+  });
   await secondContext.close();
 
   await page.reload();
