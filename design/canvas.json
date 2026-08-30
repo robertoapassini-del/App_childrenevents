@@ -1,0 +1,42 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 900, "h": 1360, "title": "Foundations" },
+    { "file": "Components.dc.html", "x": 1020, "y": 0, "w": 900, "h": 1180, "title": "Components" },
+    { "file": "MapFeed.dc.html", "x": 0, "y": 1520, "w": 390, "h": 844, "title": "Map + feed" },
+    { "file": "Detail.dc.html", "x": 500, "y": 1520, "w": 390, "h": 844, "title": "Detail sheet" },
+    { "file": "Submit.dc.html", "x": 1000, "y": 1520, "w": 390, "h": 844, "title": "Add — paste a link" },
+    { "file": "SubmitPreview.dc.html", "x": 1500, "y": 1520, "w": 390, "h": 844, "title": "Add — check before posting" },
+    { "file": "Shared.dc.html", "x": 2000, "y": 1520, "w": 390, "h": 844, "title": "Shared link" }
+  ],
+  "annotations": [
+    {
+      "id": "note-system",
+      "x": 0,
+      "y": -150,
+      "w": 420,
+      "text": "Lifted from app/globals.css and components/icons.tsx, not redrawn by eye — every hex, radius and icon path is the value the app actually ships."
+    },
+    {
+      "id": "note-screens",
+      "x": 0,
+      "y": 1390,
+      "w": 460,
+      "text": "The five screens. Map tiles are stylised: OpenStreetMap can't be reached from inside a canvas, so the streets are drawn in."
+    },
+    {
+      "id": "note-sheet",
+      "x": 0,
+      "y": 2400,
+      "w": 380,
+      "text": "The feed sheet at peek (42%). It drags to 86%, committing on distance or a flick."
+    },
+    {
+      "id": "note-submit",
+      "x": 1000,
+      "y": 2400,
+      "w": 880,
+      "text": "Two steps, because Facebook usually refuses the page: paste a link, get asked for the event text, then check the draft. The highlighted field is the one the model inferred rather than read. Anything submitted saves as 'à confirmer'."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

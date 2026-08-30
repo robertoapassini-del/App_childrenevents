@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* Ouistiti's look: warm and vibrant, chunky, a bit silly — closer to a Swiss deal
+   site than to a municipal listings page. Deliberately light-only: the app is used
+   outdoors in daylight, one-handed, while someone small tries to escape. */
+
+@theme {
+  /* Ochre-amber primary — the marmoset. */
+  --color-ouistiti-50: #fff6e8;
+  --color-ouistiti-100: #ffe9c7;
+  --color-ouistiti-200: #ffd393;
+  --color-ouistiti-300: #ffb75a;
+  --color-ouistiti-400: #fb9a2c;
+  --color-ouistiti-500: #f2820d;
+  --color-ouistiti-600: #d66700;
+  --color-ouistiti-700: #a94e02;
+  --color-ouistiti-800: #7d3b08;
+  --color-ouistiti-900: #582b0a;
+
+  /* Deep plum, for contrast and for the "official" badge. */
+  --color-plum-50: #fdf2fa;
+  --color-plum-100: #fae0f2;
+  --color-plum-300: #d98bc4;
+  --color-plum-500: #a34089;
+  --color-plum-600: #8a2f72;
+  --color-plum-700: #6b2d5c;
+  --color-plum-900: #431c39;
+
+  /* Fresh green, for "still happening" and outdoor-friendly weather. */
+  --color-fern-50: #eefaf3;
+  --color-fern-100: #d3f2e0;
+  --color-fern-500: #2fa36b;
+  --color-fern-600: #1f8355;
+  --color-fern-700: #196644;
+
+  /* Sky, the infant age group and indoor cues. */
+  --color-sky-ish-50: #eef7fd;
+  --color-sky-ish-100: #d3ebf9;
+  --color-sky-ish-500: #2e86c1;
+  --color-sky-ish-600: #21689b;
+  --color-sky-ish-700: #1a5279;
+
+  /* Warm neutrals — cream paper, soft-brown ink. Never pure black on pure white. */
+  --color-cream: #fff8f0;
+  --color-cream-deep: #fdeedd;
+  --color-ink: #2a1f1a;
+  --color-ink-soft: #6b5b51;
+  --color-ink-faint: #a19085;
+
+  --font-sans:
+    ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Quicksand",
+    "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-blob: 1.75rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* The map owns scrolling; the page itself must not bounce on iOS. */
+    overscroll-behavior: none;
+  }
+
+  /* Visible focus everywhere — this gets used by tired people at arm's length. */
+  :focus-visible {
+    outline: 3px solid var(--color-ouistiti-500);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Every interactive control clears a 48px tap target. Declared with @utility
+   rather than as a plain class so the component rules below can @apply it. */
+@utility tap {
+  min-height: 3rem;
+  min-width: 3rem;
+}
+
+@layer components {
+  /* shrink-0 matters: these live in a horizontally scrolling flex row, and
+     without it flexbox shrinks each pill to its min-width and clips the label. */
+  .pill {
+    @apply tap inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-4 text-sm font-bold whitespace-nowrap transition-colors;
+  }
+
+  .pill-off {
+    @apply border-ouistiti-200 bg-white text-ink-soft hover:border-ouistiti-300 hover:bg-ouistiti-50;
+  }
+
+  .pill-on {
+    @apply border-ouistiti-600 bg-ouistiti-500 text-white shadow-sm;
+  }
+
+  .card {
+    @apply rounded-3xl border-2 border-ouistiti-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-ouistiti-100)];
+  }
+
+  /* The feed's version. Same material, less air — the sheet only shows a couple
+     of cards at a time, so every 8px of padding costs a visible result. */
+  .card-compact {
+    @apply rounded-3xl border-2 border-ouistiti-100 bg-white p-3 shadow-[0_2px_0_0_var(--color-ouistiti-100)];
+  }
+}
+
+/* Leaflet's own stylesheet is imported by the map component; these are the bits
+   we override so the map doesn't look like a 2013 municipal GIS portal. */
+.leaflet-container {
+  background: var(--color-cream-deep);
+  font-family: var(--font-sans);
+}
+
+.leaflet-control-attribution {
+  background: rgba(255, 248, 240, 0.85) !important;
+  font-size: 10px !important;
+}
