@@ -32,3 +32,6 @@ next-env.d.ts
 .shot*.mjs
 .icons.mjs
 .debug.mjs
+
+# Seeded design-canvas output — ~2MB, rebuilt from design/*.dc.html
+design/ouistiti-design-system.html

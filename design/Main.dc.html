@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: "Quicksand", "Nunito", ui-rounded, system-ui, sans-serif; }
+    a { color: #a94e02; } a:hover { color: #7d3b08; }
+  </style>
+</helmet>
+
+<div style="width: 900px; min-height: 1180px; box-sizing: border-box; background: #fff8f0; color: #2a1f1a; padding: 48px 44px; font-family: 'Quicksand', 'Nunito', ui-rounded, system-ui, sans-serif;">
+
+  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;">
+    <div>
+      <p style="margin: 0; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #a94e02;">Ouistiti · Foundations</p>
+      <h1 style="margin: 6px 0 0; font-family: 'Nunito', sans-serif; font-size: 40px; line-height: 1.05; font-weight: 900; color: #2a1f1a;">Où sortir avec les ouistitis&nbsp;?</h1>
+      <p style="margin: 10px 0 0; max-width: 52ch; font-size: 15px; line-height: 1.55; color: #6b5b51;">Warm, chunky and a little silly — closer to a Swiss deal site than a municipal listings page. Used outdoors, in daylight, one-handed, while someone small tries to escape.</p>
+    </div>
+    <div style="flex-shrink: 0; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 20px; background: linear-gradient(#ffb75a, #f2820d);">
+      <svg viewBox="0 0 24 24" width="52" height="52" fill="none" aria-hidden="true">
+        <circle cx="7.5" cy="8.5" r="2.6" fill="#fff1dd"/><circle cx="16.5" cy="8.5" r="2.6" fill="#fff1dd"/>
+        <ellipse cx="12" cy="9.6" rx="5.6" ry="5.2" fill="#fff8f0"/>
+        <ellipse cx="10.1" cy="8.9" rx="0.9" ry="1.1" fill="#2a1f1a"/><ellipse cx="13.9" cy="8.9" rx="0.9" ry="1.1" fill="#2a1f1a"/>
+        <ellipse cx="12" cy="12.1" rx="2.2" ry="1.6" fill="#ffe4c2"/>
+        <ellipse cx="12" cy="11.4" rx="0.5" ry="0.4" fill="#2a1f1a"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Palette -->
+  <h2 style="margin: 40px 0 4px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #6b5b51;">Palette</h2>
+  <p style="margin: 0 0 18px; font-size: 13px; color: #6b5b51;">Every value is a Tailwind <code style="font-family: ui-monospace, monospace; font-size: 12px; background: #fdeedd; padding: 1px 5px; border-radius: 5px;">@theme</code> token in <code style="font-family: ui-monospace, monospace; font-size: 12px; background: #fdeedd; padding: 1px 5px; border-radius: 5px;">app/globals.css</code>.</p>
+
+  <div style="display: flex; flex-direction: column; gap: 18px;">
+
+    <div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 7px;">
+        <span style="font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;">Ouistiti</span>
+        <span style="font-size: 12px; color: #6b5b51;">the marmoset — primary, and every call to action</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px;">
+        <div style="height: 56px; border-radius: 10px; background: #fff6e8; border: 1px solid #ffe9c7; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #7d3b08;">50</div>
+        <div style="height: 56px; border-radius: 10px; background: #ffe9c7; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #7d3b08;">100</div>
+        <div style="height: 56px; border-radius: 10px; background: #ffd393; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #7d3b08;">200</div>
+        <div style="height: 56px; border-radius: 10px; background: #ffb75a; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #7d3b08;">300</div>
+        <div style="height: 56px; border-radius: 10px; background: #fb9a2c; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #582b0a;">400</div>
+        <div style="height: 56px; border-radius: 10px; background: #f2820d; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #fff8f0;">500</div>
+        <div style="height: 56px; border-radius: 10px; background: #d66700; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #fff8f0;">600</div>
+        <div style="height: 56px; border-radius: 10px; background: #a94e02; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #fff8f0;">700</div>
+        <div style="height: 56px; border-radius: 10px; background: #7d3b08; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #fff8f0;">800</div>
+        <div style="height: 56px; border-radius: 10px; background: #582b0a; display: flex; align-items: flex-end; padding: 5px; font-family: ui-monospace, monospace; font-size: 9px; color: #fff8f0;">900</div>
+      </div>
+      <p style="margin: 6px 0 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">500 · #f2820d</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;">
+
+      <div>
+        <div style="margin-bottom: 7px;">
+          <span style="font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;">Plum</span>
+          <span style="display: block; font-size: 12px; color: #6b5b51;">Officiel, and cancellations</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;">
+          <div style="height: 48px; border-radius: 10px; background: #fae0f2;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #d98bc4;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #a34089;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #6b2d5c;"></div>
+        </div>
+        <p style="margin: 6px 0 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">700 · #6b2d5c</p>
+      </div>
+
+      <div>
+        <div style="margin-bottom: 7px;">
+          <span style="font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;">Fern</span>
+          <span style="display: block; font-size: 12px; color: #6b5b51;">Ça a lieu, good weather</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;">
+          <div style="height: 48px; border-radius: 10px; background: #eefaf3; border: 1px solid #d3f2e0;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #d3f2e0;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #2fa36b;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #196644;"></div>
+        </div>
+        <p style="margin: 6px 0 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">500 · #2fa36b</p>
+      </div>
+
+      <div>
+        <div style="margin-bottom: 7px;">
+          <span style="font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;">Sky</span>
+          <span style="display: block; font-size: 12px; color: #6b5b51;">Bébés, and indoor cues</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;">
+          <div style="height: 48px; border-radius: 10px; background: #eef7fd; border: 1px solid #d3ebf9;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #d3ebf9;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #2e86c1;"></div>
+          <div style="height: 48px; border-radius: 10px; background: #1a5279;"></div>
+        </div>
+        <p style="margin: 6px 0 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">500 · #2e86c1</p>
+      </div>
+
+    </div>
+
+    <div>
+      <div style="margin-bottom: 7px;">
+        <span style="font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;">Paper and ink</span>
+        <span style="font-size: 12px; color: #6b5b51; margin-left: 8px;">never pure black on pure white</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px;">
+        <div style="height: 48px; border-radius: 10px; background: #fff8f0; border: 1px solid #fdeedd; display: flex; align-items: center; padding-left: 10px; font-family: ui-monospace, monospace; font-size: 10px; color: #6b5b51;">cream</div>
+        <div style="height: 48px; border-radius: 10px; background: #fdeedd; display: flex; align-items: center; padding-left: 10px; font-family: ui-monospace, monospace; font-size: 10px; color: #6b5b51;">cream-deep</div>
+        <div style="height: 48px; border-radius: 10px; background: #a19085; display: flex; align-items: center; padding-left: 10px; font-family: ui-monospace, monospace; font-size: 10px; color: #fff8f0;">ink-faint</div>
+        <div style="height: 48px; border-radius: 10px; background: #6b5b51; display: flex; align-items: center; padding-left: 10px; font-family: ui-monospace, monospace; font-size: 10px; color: #fff8f0;">ink-soft</div>
+        <div style="height: 48px; border-radius: 10px; background: #2a1f1a; display: flex; align-items: center; padding-left: 10px; font-family: ui-monospace, monospace; font-size: 10px; color: #fff8f0;">ink</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Type -->
+  <h2 style="margin: 40px 0 4px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #6b5b51;">Type</h2>
+  <p style="margin: 0 0 16px; font-size: 13px; color: #6b5b51;">Rounded, heavy. The stack is <code style="font-family: ui-monospace, monospace; font-size: 12px; background: #fdeedd; padding: 1px 5px; border-radius: 5px;">ui-rounded → SF Pro Rounded → Quicksand → Nunito</code>, so it lands on the system's rounded face wherever there is one.</p>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; border-left: 3px solid #ffd393; padding-left: 18px;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <span style="width: 130px; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">24 / 900</span>
+      <span style="font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -0.01em;">Ajouter une sortie</span>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <span style="width: 130px; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">20 / 800</span>
+      <span style="font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800;">Lac de Sauvabelin</span>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <span style="width: 130px; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">16 / 800</span>
+      <span style="font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800;">L'heure du conte</span>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <span style="width: 130px; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">14 / 700</span>
+      <span style="font-size: 14px; font-weight: 700;">Bibliothèque municipale de Chauderon</span>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <span style="width: 130px; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">14 / 500</span>
+      <span style="font-size: 14px; color: #6b5b51;">Vingt minutes d'histoires pour les tout-petits.</span>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <span style="width: 130px; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">12 / 800 caps</span>
+      <span style="font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #a94e02;">Aujourd'hui · 10:00</span>
+    </div>
+  </div>
+
+  <!-- Shape -->
+  <h2 style="margin: 40px 0 16px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #6b5b51;">Shape, shadow and reach</h2>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;">
+
+    <div style="border-radius: 24px; border: 2px solid #ffe9c7; background: #ffffff; padding: 16px; box-shadow: 0 2px 0 0 #ffe9c7;">
+      <p style="margin: 0 0 6px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;">Card</p>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #6b5b51;">24px radius, 2px border, and a <strong style="color: #2a1f1a;">hard</strong> 2px shadow rather than a blur. Cards read as stickers, not as material.</p>
+      <p style="margin: 8px 0 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">0 2px 0 0 #ffe9c7</p>
+    </div>
+
+    <div style="border-radius: 28px; border: 2px solid #ffd393; background: #fff8f0; padding: 16px;">
+      <p style="margin: 0 0 6px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;">Blob</p>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #6b5b51;">28px, the sheet radius. Only the top corners are rounded where a sheet meets the bottom of the screen.</p>
+      <p style="margin: 8px 0 0; font-family: ui-monospace, monospace; font-size: 11px; color: #a19085;">--radius-blob: 1.75rem</p>
+    </div>
+
+    <div style="border-radius: 24px; border: 2px dashed #ffd393; background: #fff6e8; padding: 16px;">
+      <p style="margin: 0 0 6px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;">48px, always</p>
+      <p style="margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: #6b5b51;">Every control clears a 48px target. This is used one-handed, at arm's length, by someone tired.</p>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 48px; height: 48px; border-radius: 999px; background: #f2820d;"></div>
+        <div style="height: 48px; display: flex; align-items: center; border-radius: 999px; border: 2px solid #ffd393; background: #ffffff; padding: 0 16px; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; color: #6b5b51;">48px</div>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="margin: 32px 0 0; padding-top: 18px; border-top: 2px solid #ffe9c7; font-size: 12px; color: #a19085;">Light only, deliberately — no dark mode. The app is used outdoors in daylight.</p>
+
+</div>
+</x-dc>
+</body>
+</html>
