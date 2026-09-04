@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#3b2a17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Il Sentiero — Terra di Mezzo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --ink:#2b1d0e; --ink-soft:#5a4327; --rust:#8b1a1a; --gold:#a67c2e; --gold-soft:#d5b877;
+    --paper:#e9d9b3; --paper-dark:#cdb383; --paper-light:#f3e7c9; --shadow:rgba(40,25,5,.55);
+    --serif:"IM Fell English",Georgia,"Times New Roman",serif;
+    --uncial:"Uncial Antiqua","IM Fell English",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:#3b2a17;color:var(--ink);font-family:var(--serif);-webkit-text-size-adjust:100%}
+  body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+
+  /* ---------- parchment texture (SVG noise, data URI) ---------- */
+  .parchment{
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(255,250,230,.55), transparent 55%),
+      radial-gradient(ellipse at 85% 90%, rgba(120,80,30,.28), transparent 60%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.028' numOctaves='4' seed='7'/><feColorMatrix values='0 0 0 0 .40  0 0 0 0 .28  0 0 0 0 .10  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-blend-mode:normal,multiply,multiply;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:relative;z-index:20;padding:8px 14px 10px;text-align:center;
+    border-bottom:3px double var(--gold);box-shadow:0 4px 14px var(--shadow);
+  }
+  header h1{font-family:var(--uncial);font-weight:400;font-size:1.45rem;margin:0;letter-spacing:.06em;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.4)}
+  header h1 small{display:block;font-family:var(--serif);font-style:italic;font-size:.78rem;letter-spacing:.02em;color:var(--ink-soft)}
+  .rule{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--gold);font-size:.7rem;margin-top:2px}
+  .rule::before,.rule::after{content:"";height:1px;width:22%;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+
+  /* ---------- map ---------- */
+  #mapwrap{position:relative;flex:0 0 52%;min-height:220px;overflow:hidden;border-bottom:3px double var(--gold)}
+  #map{position:absolute;inset:0;background:#d8c59a}
+  .leaflet-tile-pane{filter:sepia(.62) saturate(.72) contrast(1.06) brightness(.97)}
+  .leaflet-container{font-family:var(--serif)}
+  .map-veil{position:absolute;inset:0;pointer-events:none;z-index:400;
+    background:
+      radial-gradient(ellipse at center, transparent 55%, rgba(70,45,15,.45) 100%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.02' numOctaves='3' seed='3'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .40  0 0 0 0 .18  0 0 0 .32 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode:multiply}
+  .map-frame{position:absolute;inset:6px;pointer-events:none;z-index:401;border:2px solid var(--gold);outline:1px solid rgba(166,124,46,.55);outline-offset:3px;border-radius:2px}
+  .map-frame i{position:absolute;width:26px;height:26px;border:2px solid var(--gold)}
+  .map-frame i:nth-child(1){top:-2px;left:-2px;border-right:0;border-bottom:0}
+  .map-frame i:nth-child(2){top:-2px;right:-2px;border-left:0;border-bottom:0}
+  .map-frame i:nth-child(3){bottom:-2px;left:-2px;border-right:0;border-top:0}
+  .map-frame i:nth-child(4){bottom:-2px;right:-2px;border-left:0;border-top:0}
+  .compass{position:absolute;top:14px;right:14px;width:74px;height:74px;z-index:402;pointer-events:none;opacity:.92;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+  .map-btns{position:absolute;left:12px;bottom:12px;z-index:403;display:flex;gap:6px}
+  .map-btn{width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);background:var(--paper);color:var(--ink);font-size:20px;line-height:36px;text-align:center;cursor:pointer;box-shadow:0 2px 6px var(--shadow)}
+  .map-btn.on{background:var(--rust);color:var(--paper-light)}
+  .map-hint{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:403;background:rgba(233,217,179,.92);border:1px solid var(--gold);padding:4px 10px;font-size:.8rem;font-style:italic;border-radius:3px;pointer-events:none;white-space:nowrap;max-width:75%;overflow:hidden;text-overflow:ellipsis}
+  .leaflet-control-attribution{background:rgba(233,217,179,.85)!important;color:var(--ink-soft)!important;font-size:9px!important;font-family:var(--serif)}
+  .leaflet-control-attribution a{color:var(--rust)!important}
+  .leaflet-control-zoom a{background:var(--paper)!important;color:var(--ink)!important;border-color:var(--gold)!important;font-family:var(--serif)}
+  .leaflet-bar{border:2px solid var(--gold)!important}
+  .here{width:18px;height:18px;border-radius:50%;background:#2e6b3a;border:3px solid var(--paper-light);box-shadow:0 0 0 3px rgba(46,107,58,.35),0 0 12px 4px rgba(46,107,58,.5)}
+  .here-label,.dest-label{text-align:center;font-family:var(--uncial);font-size:11px;color:var(--ink);text-shadow:0 0 3px var(--paper-light),0 0 6px var(--paper-light);white-space:nowrap}
+
+  /* ---------- panel ---------- */
+  #panel{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px 28px;position:relative;z-index:10}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .search{position:relative;flex:1 1 200px}
+  .search input{width:100%;padding:9px 10px;font:inherit;font-size:1rem;background:var(--paper-light);border:1.5px solid var(--gold);border-radius:3px;color:var(--ink)}
+  .search input::placeholder{color:#8a7455;font-style:italic}
+  .suggest{position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--paper-light);border:1.5px solid var(--gold);border-top:0;max-height:200px;overflow:auto;display:none}
+  .suggest div{padding:8px 10px;border-top:1px solid rgba(166,124,46,.35);cursor:pointer;font-size:.92rem}
+  .suggest div:hover{background:var(--paper)}
+  button.q{font-family:var(--uncial);font-size:.9rem;padding:9px 14px;background:linear-gradient(#a52a2a,#7a1414);color:var(--paper-light);border:2px solid var(--gold);border-radius:3px;cursor:pointer;box-shadow:0 2px 5px var(--shadow);letter-spacing:.03em}
+  button.q.alt{background:linear-gradient(#f1e4c4,#d8c297);color:var(--ink)}
+  button.q:disabled{opacity:.5;cursor:default}
+  fieldset{border:1.5px solid var(--gold);border-radius:3px;margin:10px 0 0;padding:8px 10px 10px}
+  legend{font-family:var(--uncial);font-size:.85rem;padding:0 6px;color:var(--ink)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{padding:6px 11px;border:1.5px solid var(--gold);border-radius:20px;background:var(--paper-light);cursor:pointer;font-size:.9rem;user-select:none}
+  .chip.on{background:var(--rust);color:var(--paper-light);border-color:#5e0f0f}
+  .num{display:inline-flex;align-items:center;border:1.5px solid var(--gold);border-radius:20px;background:var(--paper-light);overflow:hidden}
+  .num b{width:32px;text-align:center;cursor:pointer;font-weight:400;font-size:1.2rem;user-select:none}
+  .num span{min-width:26px;text-align:center}
+  label.inl{font-size:.9rem;display:flex;align-items:center;gap:6px}
+  input[type=range]{accent-color:var(--rust);flex:1}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+  .card{border:1.5px solid var(--gold);border-radius:3px;padding:8px 10px;background:rgba(243,231,201,.55);position:relative}
+  .card.wide{grid-column:1/-1}
+  .card h3{font-family:var(--uncial);font-weight:400;font-size:.72rem;letter-spacing:.06em;margin:0 0 4px;color:var(--ink-soft)}
+  .card .v{font-size:1.5rem;line-height:1.1}
+  .card .v small{font-size:.8rem;color:var(--ink-soft)}
+  .card .sub{font-size:.8rem;color:var(--ink-soft);font-style:italic;margin-top:3px}
+  table.cmp{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:4px}
+  table.cmp th{font-family:var(--uncial);font-weight:400;font-size:.68rem;letter-spacing:.05em;color:var(--ink-soft);text-align:right;padding:2px 4px;border-bottom:1px solid var(--gold)}
+  table.cmp th:first-child,table.cmp td:first-child{text-align:left}
+  table.cmp td{padding:4px;text-align:right;border-bottom:1px dotted rgba(166,124,46,.5)}
+  table.cmp tr.sel td{background:rgba(139,26,26,.12);font-weight:700}
+  #profile{width:100%;height:110px;display:block}
+  .status{font-size:.8rem;font-style:italic;color:var(--ink-soft);margin-top:8px;text-align:center;min-height:1.2em}
+  .err{color:var(--rust)}
+  .fine{margin-top:16px;text-align:center;font-size:.72rem;color:var(--ink-soft);font-style:italic;line-height:1.35}
+  .hidden{display:none!important}
+  @media (min-width:900px){
+    body{flex-direction:row;flex-wrap:wrap}
+    header{flex:0 0 100%}
+    #mapwrap{flex:1 1 60%;min-height:0;border-bottom:0;border-right:3px double var(--gold)}
+    #panel{flex:0 0 380px}
+  }
+</style>
+</head>
+<body class="parchment">
+
+<header class="parchment">
+  <h1>Il Sentiero <small>Carta della Terra di Mezzo — cartografia Swisstopo</small></h1>
+  <div class="rule">✦ Non tutti quelli che vagano sono perduti ✦</div>
+</header>
+
+<div id="mapwrap">
+  <div id="map"></div>
+  <div class="map-veil"></div>
+  <div class="map-frame"><i></i><i></i><i></i><i></i></div>
+  <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
+    <circle cx="50" cy="50" r="46" fill="rgba(233,217,179,.85)" stroke="#a67c2e" stroke-width="2"/>
+    <circle cx="50" cy="50" r="38" fill="none" stroke="#a67c2e" stroke-width="1"/>
+    <g fill="#8b1a1a"><polygon points="50,6 56,50 50,44"/><polygon points="50,6 44,50 50,44" fill="#c9a24a"/></g>
+    <g fill="#2b1d0e"><polygon points="50,94 44,50 50,56"/><polygon points="50,94 56,50 50,56" fill="#a67c2e"/>
+    <polygon points="6,50 50,44 44,50"/><polygon points="6,50 50,56 44,50" fill="#a67c2e"/>
+    <polygon points="94,50 50,56 56,50"/><polygon points="94,50 50,44 56,50" fill="#a67c2e"/></g>
+    <text x="50" y="18" text-anchor="middle" font-family="Uncial Antiqua,serif" font-size="11" fill="#2b1d0e">N</text>
+  </svg>
+  <div class="map-hint" id="hint">Tocca la carta per scegliere la meta</div>
+  <div class="map-btns">
+    <div class="map-btn" id="btnFollow" title="Segui la mia posizione">◎</div>
+    <div class="map-btn" id="btnStart" title="Imposta la partenza a mano">⚑</div>
+    <div class="map-btn" id="btnTrails" title="Sentieri escursionistici">⛰</div>
+  </div>
+</div>
+
+<div id="panel">
+  <div class="row">
+    <div class="search">
+      <input id="q" type="search" placeholder="Meta del viaggio… (es. Oeschinensee, Cabane)" autocomplete="off">
+      <div class="suggest" id="suggest"></div>
+    </div>
+    <button class="q" id="btnRoute">Trova la via</button>
+  </div>
+
+  <fieldset>
+    <legend>La Compagnia</legend>
+    <div class="row" style="gap:12px">
+      <label class="inl">Adulti <span class="num"><b data-t="adults" data-d="-1">−</b><span id="nAdults">2</span><b data-t="adults" data-d="1">+</b></span></label>
+      <label class="inl">Bambini <span class="num"><b data-t="kids" data-d="-1">−</b><span id="nKids">0</span><b data-t="kids" data-d="1">+</b></span></label>
+    </div>
+    <div class="chips" id="ageChips" style="margin-top:8px">
+      <span class="chip" data-age="k35">3–5 anni</span>
+      <span class="chip on" data-age="k69">6–9 anni</span>
+      <span class="chip" data-age="k1013">10–13 anni</span>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label class="inl" style="flex:1">Temperatura <input type="range" id="temp" min="-5" max="38" value="20"> <span id="tempV">20 °C</span></label>
+    </div>
+  </fieldset>
+
+  <div class="cards" id="cards">
+    <div class="card"><h3>Manca</h3><div class="v" id="cDist">—</div><div class="sub" id="cDistSub">distanza sul sentiero</div></div>
+    <div class="card"><h3>Tempo stimato</h3><div class="v" id="cTime">—</div><div class="sub" id="cEta">arrivo previsto —</div></div>
+    <div class="card"><h3>Salita ↑</h3><div class="v" id="cAsc">—</div><div class="sub" id="cAscSub">ancora da salire</div></div>
+    <div class="card"><h3>Discesa ↓</h3><div class="v" id="cDesc">—</div><div class="sub">ancora da scendere</div></div>
+    <div class="card wide">
+      <h3>Con o senza bambini</h3>
+      <table class="cmp">
+        <thead><tr><th>Andatura</th><th>Tempo</th><th>Salita</th><th>Acqua a testa</th></tr></thead>
+        <tbody id="cmpBody"></tbody>
+      </table>
+    </div>
+    <div class="card wide"><h3>Acqua per la Compagnia</h3><div class="v" id="cWater">—</div><div class="sub" id="cWaterSub">sudore perso nella salita, da rimpiazzare</div></div>
+    <div class="card"><h3>Ascensione GPS</h3><div class="v" id="cVsp">—</div><div class="sub">misurata negli ultimi minuti</div></div>
+    <div class="card"><h3>Quota GPS</h3><div class="v" id="cAlt">—</div><div class="sub" id="cAcc">precisione —</div></div>
+    <div class="card wide"><h3>Profilo del cammino</h3><svg id="profile" viewBox="0 0 320 110" preserveAspectRatio="none"></svg></div>
+  </div>
+
+  <div class="status" id="status">In attesa della posizione…</div>
+  <p class="fine">Stime secondo il metodo SAC/DIN 33466 (4 km/h, 300 m/h in salita, 500 m/h in discesa per adulti), rallentate per i bambini in base all'età.
+  L'acqua è una stima del sudore (≈0,5 L/h per adulti, più in salita e col caldo). Cartografia © swisstopo · itinerari via BRouter/OSM · profilo altimetrico api3.geo.admin.ch.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(() => {
+'use strict';
+
+/* ================= parametri di stima ================= */
+// Andature (km/h piano, m/h salita, m/h discesa, fattore soste, acqua L/h, acqua L per 100 m di salita)
+const PACE = {
+  adult: {label:'Adulti',          h:4.2, up:300, down:500, rest:1.00, wH:0.50, w100:0.06},
+  k35:   {label:'Bambini 3–5',     h:2.0, up:150, down:250, rest:1.20, wH:0.28, w100:0.035},
+  k69:   {label:'Bambini 6–9',     h:3.0, up:200, down:320, rest:1.20, wH:0.32, w100:0.04},
+  k1013: {label:'Bambini 10–13',   h:3.6, up:260, down:420, rest:1.10, wH:0.40, w100:0.05},
+};
+// Tempo di marcia (ore) col metodo SAC / DIN 33466
+function walkHours(distKm, ascM, descM, p){
+  const th = distKm / p.h;
+  const tv = ascM / p.up + descM / p.down;
+  return (Math.max(th,tv) + Math.min(th,tv)/2) * p.rest;
+}
+// Acqua persa (litri) per una persona
+function waterL(hours, ascM, tempC, p){
+  const heat = 1 + Math.max(0, tempC-20)*0.045 + Math.max(0, tempC-28)*0.03;
+  return (p.wH*hours + p.w100*ascM/100) * heat;
+}
+
+/* ================= stato ================= */
+const S = {
+  adults:2, kids:0, age:'k69', temp:20,
+  pos:null,         // {lat,lon,alt,acc,t}
+  manualStart:null, // [lat,lon]
+  dest:null,        // {lat,lon,name}
+  route:null,       // {ll:[[lat,lon,ele]], cum:[m], asc, desc, len, src}
+  follow:true, pickStart:false, lastReroute:0, routing:false,
+  altHist:[], profileIdx:0,
+};
+
+/* ================= mappa ================= */
+const map = L.map('map',{zoomControl:true, attributionControl:true}).setView([46.80,8.23],8);
+const swisstopo = L.tileLayer('https://wmts{s}.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',{
+  subdomains:'0123456789', maxNativeZoom:18, maxZoom:19, attribution:'© <a href="https://www.swisstopo.admin.ch">swisstopo</a>'
+}).addTo(map);
+const trails = L.tileLayer('https://wmts{s}.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',{
+  subdomains:'0123456789', maxNativeZoom:18, maxZoom:19, opacity:.9
+}).addTo(map);
+map.attributionControl.setPrefix('');
+
+const hereIcon = L.divIcon({className:'', html:'<div class="here"></div>', iconSize:[18,18]});
+const hereLabel = L.divIcon({className:'here-label', html:'Tu sei qui', iconSize:[80,14], iconAnchor:[40,-12]});
+const destIcon = L.divIcon({className:'', iconSize:[30,34], iconAnchor:[15,32], html:
+  `<svg viewBox="0 0 30 34" width="30" height="34"><path d="M15 33 L2 12 L8 12 L8 4 L11 4 L11 8 L14 8 L14 3 L16 3 L16 8 L19 8 L19 4 L22 4 L22 12 L28 12 Z" fill="#2b1d0e" stroke="#e9d9b3" stroke-width="1.2"/><circle cx="15" cy="18" r="3" fill="#c9a24a"/></svg>`});
+let hereMk=null, hereLb=null, destMk=null, destLb=null, startMk=null, routeLine=null, routeShadow=null, accCircle=null;
+
+map.on('click', e => {
+  if (S.pickStart){
+    S.manualStart=[e.latlng.lat,e.latlng.lng]; S.pickStart=false; $('btnStart').classList.remove('on');
+    if(startMk) startMk.remove();
+    startMk=L.circleMarker(e.latlng,{radius:7,color:'#e9d9b3',fillColor:'#2e6b3a',fillOpacity:1,weight:2}).addTo(map);
+    hint('Partenza impostata. Ora scegli la meta.');
+    if(S.dest) computeRoute();
+    return;
+  }
+  setDest(e.latlng.lat, e.latlng.lng, 'Meta scelta sulla carta');
+});
+map.on('dragstart', () => { S.follow=false; $('btnFollow').classList.remove('on'); });
+
+/* ================= UI helpers ================= */
+const $ = id => document.getElementById(id);
+const hint = t => { $('hint').textContent=t; };
+const status = (t,err) => { const s=$('status'); s.textContent=t; s.className='status'+(err?' err':''); };
+const fmtKm = m => m<1000 ? Math.round(m)+' m' : (m/1000).toFixed(m<10000?2:1)+' km';
+const fmtH = h => { const m=Math.round(h*60); return m<60 ? m+' min' : Math.floor(m/60)+' h '+String(m%60).padStart(2,'0'); };
+const fmtClock = d => d.toLocaleTimeString('it-CH',{hour:'2-digit',minute:'2-digit'});
+
+function setDest(lat,lon,name){
+  S.dest={lat,lon,name};
+  if(destMk) destMk.remove(); if(destLb) destLb.remove();
+  destMk=L.marker([lat,lon],{icon:destIcon}).addTo(map);
+  destLb=L.marker([lat,lon],{icon:L.divIcon({className:'dest-label',html:name,iconSize:[160,14],iconAnchor:[80,-6]}),interactive:false}).addTo(map);
+  hint('Meta: '+name);
+  computeRoute();
+}
+function startPoint(){
+  if(S.manualStart) return S.manualStart;
+  if(S.pos) return [S.pos.lat,S.pos.lon];
+  return null;
+}
+
+/* ================= geometria ================= */
+const R=6371000, rad=Math.PI/180;
+function hav(a,b){ // [lat,lon]
+  const dLat=(b[0]-a[0])*rad, dLon=(b[1]-a[1])*rad;
+  const s=Math.sin(dLat/2)**2+Math.cos(a[0]*rad)*Math.cos(b[0]*rad)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+// dislivello con isteresi per non contare il rumore
+function climbStats(ll, from=0){
+  let asc=0, desc=0, ref=ll[from]?.[2]; if(ref==null) return {asc:0,desc:0};
+  const TH=4;
+  for(let i=from+1;i<ll.length;i++){ const e=ll[i][2]; if(e==null) continue;
+    if(e-ref>=TH){asc+=e-ref;ref=e;} else if(ref-e>=TH){desc+=ref-e;ref=e;} }
+  return {asc,desc};
+}
+function nearestIdx(ll, p){
+  let best=0,bd=Infinity;
+  for(let i=0;i<ll.length;i++){ const d=hav(ll[i],p); if(d<bd){bd=d;best=i;} }
+  return {idx:best,dist:bd};
+}
+function decodePolyline(str, precision=6){
+  let index=0, lat=0, lng=0; const out=[], f=Math.pow(10,precision);
+  while(index<str.length){
+    let b, shift=0, result=0;
+    do{ b=str.charCodeAt(index++)-63; result|=(b&0x1f)<<shift; shift+=5; }while(b>=0x20);
+    lat += (result&1)?~(result>>1):(result>>1);
+    shift=0; result=0;
+    do{ b=str.charCodeAt(index++)-63; result|=(b&0x1f)<<shift; shift+=5; }while(b>=0x20);
+    lng += (result&1)?~(result>>1):(result>>1);
+    out.push([lat/f,lng/f]);
+  }
+  return out;
+}
+
+/* ================= routing ================= */
+async function fetchJSON(url, opt){ const r=await fetch(url,opt); if(!r.ok) throw new Error(r.status+' '+url.split('/')[2]); return r.json(); }
+
+async function routeBRouter(a,b){
+  const u=`https://brouter.de/brouter?lonlats=${a[1]},${a[0]}|${b[1]},${b[0]}&profile=hiking-mountain&alternativeidx=0&format=geojson`;
+  const g=await fetchJSON(u);
+  const c=g.features[0].geometry.coordinates;      // [lon,lat,ele]
+  return {ll:c.map(x=>[x[1],x[0],x[2]!=null?+x[2]:null]), src:'BRouter (sentieri OSM)'};
+}
+async function routeValhalla(a,b){
+  const body={locations:[{lat:a[0],lon:a[1]},{lat:b[0],lon:b[1]}],costing:'pedestrian',costing_options:{pedestrian:{use_hills:1,walking_speed:4.2}},units:'kilometers'};
+  const g=await fetchJSON('https://valhalla1.openstreetmap.de/route',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const pts=decodePolyline(g.trip.legs[0].shape,6);
+  return {ll:pts.map(p=>[p[0],p[1],null]), src:'Valhalla (OSM)'};
+}
+function routeStraight(a,b){
+  const n=40, ll=[]; for(let i=0;i<=n;i++) ll.push([a[0]+(b[0]-a[0])*i/n, a[1]+(b[1]-a[1])*i/n, null]);
+  return {ll, src:'linea del corvo (nessun sentiero trovato)'};
+}
+// Profilo altimetrico swisstopo lungo la linea (rimpiazza/aggiunge le quote)
+async function elevSwisstopo(ll){
+  // semplifica a max 400 vertici per non superare i limiti dell'API
+  const step=Math.max(1,Math.ceil(ll.length/400)); const pts=ll.filter((_,i)=>i%step===0); if(pts[pts.length-1]!==ll[ll.length-1]) pts.push(ll[ll.length-1]);
+  const geom={type:'LineString',coordinates:pts.map(p=>[+p[1].toFixed(6),+p[0].toFixed(6)])};
+  const nb=Math.min(2000,Math.max(100,Math.round(ll.length*1.2)));
+  const body=new URLSearchParams({geom:JSON.stringify(geom),sr:'4326',nb_points:String(nb),offset:'0'});
+  const prof=await fetchJSON('https://api3.geo.admin.ch/rest/services/profile.json',{method:'POST',body});
+  // prof: [{dist, alts:{COMB,DTM2,DTM25}, easting, northing}] – ricampiono sui vertici del percorso
+  const out=[]; let cum=0; const cums=[0];
+  for(let i=1;i<ll.length;i++){ cum+=hav(ll[i-1],ll[i]); cums.push(cum); }
+  let j=0;
+  for(let i=0;i<ll.length;i++){
+    while(j<prof.length-1 && prof[j+1].dist<cums[i]) j++;
+    const a=prof[j], b=prof[Math.min(j+1,prof.length-1)];
+    const t=(b.dist>a.dist)?Math.min(1,Math.max(0,(cums[i]-a.dist)/(b.dist-a.dist))):0;
+    const ea=a.alts.COMB??a.alts.DTM2??a.alts.DTM25, eb=b.alts.COMB??b.alts.DTM2??b.alts.DTM25;
+    out.push([ll[i][0],ll[i][1], ea+(eb-ea)*t]);
+  }
+  return out;
+}
+
+async function computeRoute(){
+  const a=startPoint(); if(!a||!S.dest){ if(!a) status('Serve la posizione GPS (o imposta la partenza con ⚑).',true); return; }
+  if(S.routing) return; S.routing=true; $('btnRoute').disabled=true;
+  status('Cerco il sentiero…');
+  const b=[S.dest.lat,S.dest.lon];
+  let r=null, errs=[];
+  try{ r=await routeBRouter(a,b); }catch(e){ errs.push('BRouter: '+e.message); }
+  if(!r){ try{ r=await routeValhalla(a,b); }catch(e){ errs.push('Valhalla: '+e.message); } }
+  if(!r){ r=routeStraight(a,b); }
+  let elevSrc='';
+  try{ r.ll=await elevSwisstopo(r.ll); elevSrc=' · quote swisstopo'; }
+  catch(e){ errs.push('profilo: '+e.message); if(r.ll.every(p=>p[2]==null)) elevSrc=' · senza quote'; else elevSrc=' · quote SRTM'; }
+  // cumulate
+  const cum=[0]; for(let i=1;i<r.ll.length;i++) cum.push(cum[i-1]+hav(r.ll[i-1],r.ll[i]));
+  const cs=climbStats(r.ll);
+  S.route={ll:r.ll,cum,len:cum[cum.length-1],asc:cs.asc,desc:cs.desc,src:r.src+elevSrc};
+  drawRoute();
+  status('Via trovata: '+S.route.src + (errs.length?'  ('+errs.join('; ')+')':''), false);
+  S.routing=false; $('btnRoute').disabled=false; S.lastReroute=Date.now();
+  update();
+}
+function drawRoute(){
+  if(routeLine) routeLine.remove(); if(routeShadow) routeShadow.remove();
+  const pts=S.route.ll.map(p=>[p[0],p[1]]);
+  routeShadow=L.polyline(pts,{color:'#f3e7c9',weight:7,opacity:.75,lineCap:'round'}).addTo(map);
+  routeLine=L.polyline(pts,{color:'#8b1a1a',weight:3.5,dashArray:'2 9',lineCap:'round',opacity:.95}).addTo(map);
+  map.fitBounds(routeLine.getBounds(),{padding:[30,30]});
+  S.follow=false; $('btnFollow').classList.remove('on');
+}
+
+/* ================= stime ================= */
+function update(){
+  const r=S.route; if(!r) return;
+  // punto sul percorso più vicino alla posizione
+  let idx=0, off=0;
+  const p=startPoint();
+  if(S.pos && !S.manualStart){ const n=nearestIdx(r.ll,[S.pos.lat,S.pos.lon]); idx=n.idx; off=n.dist; }
+  S.profileIdx=idx;
+  const remain=r.len-r.cum[idx];
+  const cs=climbStats(r.ll,idx);
+  const kidsP=PACE[S.age];
+  const groupP=S.kids>0?kidsP:PACE.adult;
+
+  const hAdult=walkHours(remain/1000,cs.asc,cs.desc,PACE.adult);
+  const hKids=walkHours(remain/1000,cs.asc,cs.desc,kidsP);
+  const hGroup=S.kids>0?hKids:hAdult;
+
+  $('cDist').innerHTML=fmtKm(remain)+(off>150?' <small>(sei a '+fmtKm(off)+' dal sentiero)</small>':'');
+  $('cDistSub').textContent='di '+fmtKm(r.len)+' totali · '+r.src;
+  $('cTime').textContent=fmtH(hGroup);
+  $('cEta').textContent='arrivo previsto alle '+fmtClock(new Date(Date.now()+hGroup*3600e3))+(S.kids>0?' (passo dei bambini)':'');
+  $('cAsc').textContent=Math.round(cs.asc)+' m';
+  $('cAscSub').textContent='ancora da salire · tot. '+Math.round(r.asc)+' m';
+  $('cDesc').textContent=Math.round(cs.desc)+' m';
+
+  // tabella con/senza bambini
+  const rows=[
+    {k:'adult',p:PACE.adult,h:hAdult,sel:S.kids===0},
+    {k:S.age,p:kidsP,h:hKids,sel:S.kids>0},
+  ];
+  $('cmpBody').innerHTML=rows.map(o=>{
+    const vEff=cs.asc>0? Math.round(cs.asc/Math.max(0.01,o.h)) : 0;
+    return `<tr class="${o.sel?'sel':''}"><td>${o.p.label}</td><td>${fmtH(o.h)}</td><td>${o.p.up} m/h <small>(eff. ${vEff})</small></td><td>${waterL(o.h,cs.asc,S.temp,o.p).toFixed(1)} L</td></tr>`;
+  }).join('');
+
+  // acqua per la compagnia: tutti camminano per hGroup ore
+  const wA=waterL(hGroup,cs.asc,S.temp,PACE.adult), wK=waterL(hGroup,cs.asc,S.temp,kidsP);
+  const tot=S.adults*wA+S.kids*wK;
+  $('cWater').innerHTML=tot.toFixed(1)+' L <small>≈ '+Math.ceil(tot/0.5)+' borracce da ½ L</small>';
+  $('cWaterSub').textContent=`${S.adults} adulti × ${wA.toFixed(1)} L`+(S.kids>0?` + ${S.kids} bambini × ${wK.toFixed(1)} L`:'')+` · ${S.temp} °C`;
+  drawProfile();
+}
+
+function drawProfile(){
+  const svg=$('profile'), r=S.route; if(!r) return;
+  const W=320,H=110,pad=8;
+  const els=r.ll.map(p=>p[2]).filter(e=>e!=null);
+  if(!els.length){ svg.innerHTML='<text x="160" y="60" text-anchor="middle" font-size="11" fill="#5a4327" font-style="italic">quote non disponibili</text>'; return; }
+  const mn=Math.min(...els), mx=Math.max(...els), sp=Math.max(50,mx-mn);
+  const X=i=>pad+(W-2*pad)*r.cum[i]/r.len, Y=e=>H-pad-(H-2*pad-14)*(e-mn)/sp;
+  let d='', last=null;
+  r.ll.forEach((p,i)=>{ if(p[2]==null) return; d+=(d?' L':'M')+X(i).toFixed(1)+' '+Y(p[2]).toFixed(1); last=i; });
+  const area=d+` L${X(last).toFixed(1)} ${H-pad} L${pad} ${H-pad} Z`;
+  const xi=X(S.profileIdx);
+  svg.innerHTML=`
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b1a1a" stop-opacity=".45"/><stop offset="1" stop-color="#8b1a1a" stop-opacity=".05"/></linearGradient></defs>
+    <path d="${area}" fill="url(#g)"/><path d="${d}" fill="none" stroke="#2b1d0e" stroke-width="1.4"/>
+    <line x1="${xi}" y1="${pad}" x2="${xi}" y2="${H-pad}" stroke="#2e6b3a" stroke-width="2" stroke-dasharray="3 3"/>
+    <circle cx="${xi}" cy="${Y(r.ll[S.profileIdx][2]??mn)}" r="4" fill="#2e6b3a" stroke="#f3e7c9" stroke-width="1.5"/>
+    <text x="${pad}" y="${pad+9}" font-size="10" fill="#5a4327">${Math.round(mx)} m</text>
+    <text x="${pad}" y="${H-pad-2}" font-size="10" fill="#5a4327">${Math.round(mn)} m</text>
+    <text x="${W-pad}" y="${H-pad-2}" font-size="10" fill="#5a4327" text-anchor="end">${fmtKm(r.len)}</text>`;
+}
+
+/* ================= GPS ================= */
+function onPos(g){
+  const c=g.coords;
+  S.pos={lat:c.latitude,lon:c.longitude,alt:c.altitude,acc:c.accuracy,t:g.timestamp};
+  const ll=[c.latitude,c.longitude];
+  if(!hereMk){
+    hereMk=L.marker(ll,{icon:hereIcon,interactive:false,zIndexOffset:900}).addTo(map);
+    hereLb=L.marker(ll,{icon:hereLabel,interactive:false}).addTo(map);
+    accCircle=L.circle(ll,{radius:c.accuracy,color:'#2e6b3a',weight:1,fillOpacity:.08}).addTo(map);
+    map.setView(ll,15);
+    hint(S.dest?'Meta: '+S.dest.name:'Tocca la carta per scegliere la meta');
+    fetchWeather(c.latitude,c.longitude);
+  } else { hereMk.setLatLng(ll); hereLb.setLatLng(ll); accCircle.setLatLng(ll).setRadius(c.accuracy); if(S.follow) map.panTo(ll); }
+  $('cAlt').textContent=c.altitude!=null?Math.round(c.altitude)+' m':'—';
+  $('cAcc').textContent='precisione ± '+Math.round(c.accuracy)+' m';
+  // velocità di ascensione misurata (ultimi 10 min)
+  if(c.altitude!=null){
+    S.altHist.push({t:g.timestamp,a:c.altitude}); S.altHist=S.altHist.filter(h=>g.timestamp-h.t<600e3);
+    const f=S.altHist[0], dt=(g.timestamp-f.t)/3600e3;
+    $('cVsp').textContent = dt>0.03 ? (Math.round((c.altitude-f.a)/dt)>=0?'+':'')+Math.round((c.altitude-f.a)/dt)+' m/h' : '…';
+  }
+  if(!S.route){ if(S.dest) computeRoute(); else status('Posizione trovata. Scegli la meta sulla carta o cercala.'); }
+  else {
+    update();
+    if(!S.manualStart){ const n=nearestIdx(S.route.ll,ll); if(n.dist>200 && Date.now()-S.lastReroute>60e3){ status('Sei lontano dal sentiero: ricalcolo…'); computeRoute(); } }
+  }
+}
+function onPosErr(e){
+  const why={1:'permesso negato',2:'segnale assente',3:'nessuna risposta'}[e.code]||e.message||'errore';
+  if(S.pos) { $('cAcc').textContent='GPS: '+why; return; }   // fix già avuta: non coprire lo stato
+  status('GPS non disponibile ('+why+'). Usa ⚑ per fissare la partenza a mano.',true);
+}
+if('geolocation' in navigator){
+  navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,maximumAge:3000,timeout:25000});
+} else onPosErr({message:'non supportato'});
+
+async function fetchWeather(lat,lon){
+  try{
+    const w=await fetchJSON(`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(3)}&longitude=${lon.toFixed(3)}&current=temperature_2m`);
+    const t=Math.round(w.current.temperature_2m); $('temp').value=t; S.temp=t; $('tempV').textContent=t+' °C (meteo)'; update();
+  }catch(e){}
+}
+
+/* ================= ricerca meta ================= */
+let qTimer=null;
+$('q').addEventListener('input',()=>{ clearTimeout(qTimer); const v=$('q').value.trim(); if(v.length<2){ $('suggest').style.display='none'; return; } qTimer=setTimeout(()=>search(v),300); });
+$('q').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); search($('q').value.trim(),true); } });
+async function search(v,go){
+  let res=[];
+  try{
+    const j=await fetchJSON(`https://api3.geo.admin.ch/rest/services/api/SearchServer?searchText=${encodeURIComponent(v)}&type=locations&sr=4326&limit=6&lang=it`);
+    res=j.results.map(x=>({name:x.attrs.label.replace(/<[^>]+>/g,''),lat:x.attrs.lat,lon:x.attrs.lon}));
+  }catch(e){
+    try{ const j=await fetchJSON(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(v)}&format=json&limit=6&countrycodes=ch`);
+      res=j.map(x=>({name:x.display_name.split(',').slice(0,2).join(','),lat:+x.lat,lon:+x.lon})); }catch(e2){ status('Ricerca non riuscita',true); }
+  }
+  if($('q').value.trim()!==v) return;
+  const box=$('suggest'); box.innerHTML='';
+  if(go && res[0]){ pick(res[0]); return; }
+  res.forEach(o=>{ const d=document.createElement('div'); d.textContent=o.name; d.onclick=()=>pick(o); box.appendChild(d); });
+  box.style.display=res.length?'block':'none';
+}
+function pick(o){ clearTimeout(qTimer); $('suggest').style.display='none'; $('q').value=o.name; setDest(o.lat,o.lon,o.name); }
+document.addEventListener('click',e=>{ if(!e.target.closest('.search')) $('suggest').style.display='none'; });
+
+/* ================= controlli ================= */
+$('btnRoute').onclick=()=>{ if(!S.dest){ status('Scegli prima una meta.',true); return; } computeRoute(); };
+$('btnFollow').classList.add('on');
+$('btnFollow').onclick=()=>{ S.follow=!S.follow; $('btnFollow').classList.toggle('on',S.follow); if(S.follow&&S.pos) map.setView([S.pos.lat,S.pos.lon],Math.max(map.getZoom(),15)); };
+$('btnStart').onclick=()=>{
+  if(S.manualStart && !S.pickStart){ S.manualStart=null; if(startMk){startMk.remove();startMk=null;} hint('Partenza = posizione GPS'); if(S.dest) computeRoute(); return; }
+  S.pickStart=!S.pickStart; $('btnStart').classList.toggle('on',S.pickStart); hint(S.pickStart?'Tocca la carta per fissare la partenza':'Tocca la carta per scegliere la meta');
+};
+$('btnTrails').classList.add('on');
+$('btnTrails').onclick=()=>{ if(map.hasLayer(trails)){map.removeLayer(trails);$('btnTrails').classList.remove('on');} else {trails.addTo(map);$('btnTrails').classList.add('on');} };
+document.querySelectorAll('.num b').forEach(b=>b.onclick=()=>{
+  const t=b.dataset.t, d=+b.dataset.d;
+  if(t==='adults') S.adults=Math.max(1,S.adults+d); else S.kids=Math.max(0,S.kids+d);
+  $('nAdults').textContent=S.adults; $('nKids').textContent=S.kids; update();
+});
+document.querySelectorAll('#ageChips .chip').forEach(c=>c.onclick=()=>{ document.querySelectorAll('#ageChips .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); S.age=c.dataset.age; update(); });
+$('temp').oninput=()=>{ S.temp=+$('temp').value; $('tempV').textContent=S.temp+' °C'; update(); };
+
+window.__app={S,update,computeRoute,setDest,onPos};
+})();
+</script>
+</body>
+</html>
