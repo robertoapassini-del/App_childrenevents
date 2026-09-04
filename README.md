@@ -13,10 +13,10 @@ Web app in un solo file (`index.html`, nessuna build) da aprire sul telefono:
 
 Il GPS nel browser funziona solo su **HTTPS**. Opzioni:
 
-1. **GitHub Pages** (consigliato). Il workflow `.github/workflows/pages.yml` pubblica il repo ad ogni push.
-   Su GitHub: *Settings → Pages → Source: GitHub Actions*. Sui piani gratuiti Pages richiede che il repo sia **pubblico**
-   (*Settings → General → Danger zone → Change visibility*). L'app sarà su
-   `https://robertoapassini-del.github.io/App_childrenevents/`.
+1. **GitHub Pages** (consigliato). Il workflow `.github/workflows/pages.yml` copia il sito sul branch `gh-pages` ad ogni push;
+   su un repo pubblico GitHub lo pubblica automaticamente su
+   `https://robertoapassini-del.github.io/App_childrenevents/`
+   (se non appare, *Settings → Pages → Source: Deploy from a branch → gh-pages*).
 2. **Qualsiasi hosting statico** (Netlify Drop, Vercel, Cloudflare Pages): basta caricare `index.html` e `manifest.webmanifest`.
 3. **Test in locale** dal PC: `npx serve .` e apri `http://localhost:3000` (su localhost il GPS è permesso).
    Dal telefono via LAN il GPS non è disponibile: usa il pulsante ⚑ per fissare la partenza a mano.
