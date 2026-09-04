@@ -882,10 +882,23 @@ document.getElementById('gotoForm').addEventListener('submit', e => {
   if (v >= 1 && v <= 9999) generate(v, false);
 });
 document.getElementById('print').addEventListener('click', () => window.print());
-document.getElementById('save').addEventListener('click', () => {
+// Saving: inside the claude.ai viewer the page must hand the file over through
+// the `downloads` capability; opened as a plain file it uses a normal download link.
+const downloadsReady = (window.claude && typeof window.claude.use === 'function')
+  ? window.claude.use('downloads').catch(() => null)
+  : Promise.resolve(null);
+document.getElementById('save').addEventListener('click', async () => {
+  const filename = `squishy-ravioli-${state.seed}.png`;
+  const downloads = await downloadsReady;
+  if (downloads){
+    const blob = await new Promise(res => view.toBlob(res, 'image/png'));
+    if (!blob) return;
+    try { await downloads.save({ filename, data: blob }); } catch (err) {}
+    return;
+  }
   try {
     const a = document.createElement('a');
-    a.download = `squishy-ravioli-${state.seed}.png`;
+    a.download = filename;
     a.href = view.toDataURL('image/png');
     document.body.appendChild(a); a.click(); a.remove();
   } catch (err) {}
