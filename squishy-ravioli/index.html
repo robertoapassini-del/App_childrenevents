@@ -252,7 +252,7 @@ aside{display:grid;gap:16px;position:sticky;top:16px}
         <ul class="tips">
           <li>Tocca un pezzo del disegno per riempirlo con il colore scelto qui sotto.</li>
           <li>Stampa il foglio per colorarlo con i pennarelli: esce già in formato A4.</li>
-          <li>Non piace? Premi «Nuovo disegno» e arriva un altro raviolo.</li>
+          <li>Non piace? Premi «Nuovo disegno» e arriva un altro squishy: bao, gyoza o fagottino.</li>
         </ul>
       </section>
     </aside>
@@ -359,18 +359,32 @@ function sparklePath(ctx, x, y, d){
 }
 
 /* ---------- shapes (unit radius) ---------- */
-function squircle(p, n){
-  n = n || 360; const pts = [];
+// Bao body: a puffy bun, rounder on top and flatter underneath. c=1 marks the top half,
+// where the dough is pinched, so scallops only appear there.
+function bao(tall){
+  const n = 360, pts = [];
+  const kTop = tall ? 0.98 : 0.86, kBot = tall ? 0.76 : 0.7;
   for (let i = 0; i < n; i++){
-    const t = i / n * Math.PI * 2, c = Math.cos(t), s = Math.sin(t);
-    pts.push({ x: Math.sign(c) * Math.pow(Math.abs(c), 2 / p), y: Math.sign(s) * Math.pow(Math.abs(s), 2 / p), c: 1 });
+    const t = i / n * Math.PI * 2, c = Math.cos(t), sn = Math.sin(t);
+    const top = sn < 0, px = top ? 2.3 : 2.9, py = top ? 2.3 : 3.4, k = top ? kTop : kBot;
+    pts.push({ x: Math.sign(c) * Math.pow(Math.abs(c), 2 / px), y: Math.sign(sn) * Math.pow(Math.abs(sn), 2 / py) * k, c: top ? 1 : 0 });
   }
   return pts;
 }
-function halfmoon(){
-  const pts = [], cy = 0.28, nArc = 250, nCh = 110;
-  for (let i = 0; i <= nArc; i++){ const t = Math.PI + Math.PI * i / nArc; pts.push({ x: Math.cos(t), y: cy + Math.sin(t), c: 1 }); }
+// Gyoza: half-moon standing on its flat side, pleated seam along the arc.
+function gyoza(){
+  const pts = [], cy = 0.3, nArc = 250, nCh = 110;
+  for (let i = 0; i <= nArc; i++){ const t = Math.PI + Math.PI * i / nArc; pts.push({ x: Math.cos(t), y: cy + Math.sin(t) * 0.95, c: 1 }); }
   for (let i = 1; i <= nCh; i++) pts.push({ x: 1 - 2 * i / (nCh + 1), y: cy, c: 0 });
+  return pts;
+}
+// Purse dumpling: round belly gathered into a neck; the frill on top is drawn separately.
+function purse(){
+  const pts = [], R = 0.95, cy = 0.2;
+  const a0 = -128 * Math.PI / 180, a1 = 232 * Math.PI / 180;
+  for (let i = 0; i <= 260; i++){ const t = a0 + (a1 - a0) * i / 260; pts.push({ x: Math.cos(t) * R, y: cy + Math.sin(t) * R, c: 0 }); }
+  const neck = [[-0.5,-0.66],[-0.36,-0.74],[-0.27,-0.8],[0.27,-0.8],[0.36,-0.74],[0.5,-0.66]];
+  for (const [x, y] of neck) pts.push({ x, y, c: 0 });
   return pts;
 }
 function heart(){
@@ -416,107 +430,149 @@ function crimpPhase(pts){
   for (let k = 0; k < m; k++){ const i = (start + k) % m; if (pts[i].c) ph[i] = acc / (tot || 1); acc += segLen(i); }
   return { ph, tot, all };
 }
+function swirl(ctx, x, y, r, lw){
+  ctx.beginPath();
+  for (let i = 0; i <= 48; i++){
+    const t = i / 48, a = -Math.PI / 2 + t * Math.PI * 3.2, rr = r * (0.12 + 0.88 * t);
+    const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr * 0.75;
+    i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+  }
+  paintPath(ctx, lw);
+}
+function pleat(ctx, x0, y0, x1, y1, bulge, lw){
+  const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+  ctx.beginPath(); ctx.moveTo(x0, y0);
+  ctx.quadraticCurveTo(mx + (mx - x0) * 0 + bulge.x, my + bulge.y, x1, y1);
+  paintPath(ctx, lw);
+}
 
-/* ---------- one raviolo ---------- */
+/* ---------- one dumpling ---------- */
 function drawRaviolo(ctx, rng, cx, cy, s, opt){
   opt = opt || {};
-  const shapeName = rng.pick(['square','square','square','round','round','moon','heart']);
-  const rot = rng.range(-0.16, 0.16), sx = rng.range(0.94, 1.06), sy = rng.range(0.94, 1.06);
+  const kind = rng.pick(['bao','bao','bao','xlb','xlb','gyoza','purse','heart']);
+  const rot = rng.range(-0.14, 0.14), sx = rng.range(0.95, 1.06), sy = rng.range(0.95, 1.06);
   ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(sx, sy);
 
   let base;
-  if (shapeName === 'square') base = squircle(rng.range(3.4, 4.8));
-  else if (shapeName === 'round') base = squircle(2);
-  else if (shapeName === 'moon') base = halfmoon();
+  if (kind === 'bao') base = bao(false);
+  else if (kind === 'xlb') base = bao(true);
+  else if (kind === 'gyoza') base = gyoza();
+  else if (kind === 'purse') base = purse();
   else base = heart();
   const pts = resample(base.map(p => ({ x: p.x * s, y: p.y * s, c: p.c })), 440);
   const c0 = centroid(pts), nrm = normals(pts), cp = crimpPhase(pts);
   const lw = Math.max(4.5, Math.min(7, s * 0.021)), lw2 = Math.max(3.5, Math.min(5, s * 0.014));
 
-  const edge = rng.pick(['scallop','scallop','tines','double','tines']);
-  const eyes = rng.pick(['dot','dot','big','happy','wink','sleepy']);
+  const eyes = rng.pick(['dot','dot','dot','big','happy','wink','sleepy']);
   const mouth = rng.pick(['smile','smile','cat','o','tongue','open']);
-  const blush = rng.pick(['circle','lines','circle','none']);
-  const limbs = rng.chance(0.62);
-  const acc = opt.acc || rng.pick(['none','none','bow','chef','party','crown','flower','leaf','heart','sparkles']);
-  const brows = rng.chance(0.22);
+  const blush = rng.pick(['circle','circle','lines','none']);
+  const limbs = rng.chance(0.55);
+  const acc = opt.acc || rng.pick(['none','none','none','bow','chef','party','crown','flower','leaf','heart','sparkles']);
+  const brows = rng.chance(0.2);
 
   const top = pts.reduce((a, p) => p.y < a.y ? p : a);
   const ulScore = p => (p.x - c0.x) * -0.6 + (p.y - c0.y) * -0.8;
   const ul = pts.reduce((a, p) => ulScore(p) > ulScore(a) ? p : a);
 
+  // the purse's frill sits behind the body
+  if (kind === 'purse'){
+    for (const deg of [-150, -118, -90, -62, -30]){
+      const a = deg * Math.PI / 180;
+      ell(ctx, Math.cos(a) * 0.24 * s, -0.8 * s + Math.sin(a) * 0.26 * s, 0.22 * s, 0.09 * s, a, lw2, '#fff');
+    }
+  }
+
   // limbs behind the body
   if (limbs){
-    const armY = c0.y + 0.08 * s;
+    const armY = c0.y + 0.1 * s;
     const near = pts.filter(p => Math.abs(p.y - armY) < 0.06 * s);
     if (near.length){
       const xr = Math.max(...near.map(p => p.x)), xl = Math.min(...near.map(p => p.x));
       ell(ctx, xr + 0.05 * s, armY, 0.14 * s, 0.09 * s, 0.35, lw, '#fff');
       ell(ctx, xl - 0.05 * s, armY, 0.14 * s, 0.09 * s, -0.35, lw, '#fff');
     }
-    for (const fx of [-0.36, 0.36]){
+    if (!opt.inBasket) for (const fx of [-0.36, 0.36]){
       const near2 = pts.filter(p => Math.abs(p.x - fx * s) < 0.06 * s);
       if (near2.length){
         const yb = Math.max(...near2.map(p => p.y));
-        ell(ctx, fx * s, yb + 0.03 * s, 0.14 * s, 0.09 * s, 0, lw, '#fff');
+        ell(ctx, fx * s, yb + 0.06 * s, 0.15 * s, 0.1 * s, 0, lw, "#fff");
       }
     }
   }
 
-  // body
+  // body outline: soft lumps where the dough is pinched
   let outline = pts;
-  if (edge === 'scallop'){
-    const k = Math.max(6, Math.round(cp.tot / (0.27 * s))), amp = 0.055 * s;
+  const lumpy = kind === 'gyoza' || ((kind === 'bao' || kind === 'xlb') && rng.chance(0.5));
+  if (lumpy){
+    const k = kind === 'gyoza' ? Math.max(7, Math.round(cp.tot / (0.26 * s))) : Math.max(5, Math.round(cp.tot / (0.34 * s)));
+    const amp = kind === 'gyoza' ? 0.06 * s : 0.03 * s;
     outline = pts.map((p, i) => { const b = cp.ph[i] < 0 ? 0 : amp * Math.abs(Math.sin(Math.PI * k * cp.ph[i])); return { x: p.x + nrm[i].x * b, y: p.y + nrm[i].y * b }; });
   }
   shape(ctx, outline, lw, '#fff');
 
-  if (edge === 'tines'){
-    const k = Math.max(8, Math.round(cp.tot / (0.2 * s)));
+  // pleats
+  let faceY = 0.16 * s;
+  if (kind === 'bao' || kind === 'xlb'){
+    const tall = kind === 'xlb';
+    const crownY = -(tall ? 0.98 : 0.86) * s;
+    const n = tall ? rng.int(10, 14) : rng.int(5, 8);
+    const spread = tall ? [-172, -8] : [-160, -20];
+    for (let i = 0; i < n; i++){
+      const a = (spread[0] + (spread[1] - spread[0]) * (i + 0.5) / n) * Math.PI / 180;
+      const r = tall ? rng.range(0.38, 0.5) : rng.range(0.55, 0.72);
+      const ex = Math.cos(a) * r * s, ey = Math.sin(a) * r * -crownY;
+      pleat(ctx, 0, crownY + 0.02 * s, ex, ey, { x: ex * 0.45, y: -(ey - crownY) * 0.18 }, lw2);
+    }
+    swirl(ctx, 0, crownY + 0.01 * s, (tall ? 0.06 : 0.08) * s, lw2);
+    faceY = (tall ? 0.24 : 0.18) * s;
+    if (rng.chance(0.5)) arc(ctx, -0.42 * s, -0.3 * s, 0.22 * s, Math.PI * 1.08, Math.PI * 1.36, lw2 * 0.9);
+  } else if (kind === 'gyoza'){
+    const k = Math.max(7, Math.round(cp.tot / (0.26 * s)));
     for (let j = 0; j < k; j++){
       const t = (j + 0.5) / k; let bi = -1, bd = 9;
       for (let i = 0; i < pts.length; i++){ if (cp.ph[i] >= 0){ const d = Math.abs(cp.ph[i] - t); if (d < bd){ bd = d; bi = i; } } }
       if (bi < 0) continue;
       const p = pts[bi], n = nrm[bi];
-      seg(ctx, p.x - n.x * 0.04 * s, p.y - n.y * 0.04 * s, p.x - n.x * 0.17 * s, p.y - n.y * 0.17 * s, lw2);
+      const ca = Math.cos(0.55), sa = Math.sin(0.55);
+      const dx = n.x * ca - n.y * sa, dy = n.x * sa + n.y * ca;
+      seg(ctx, p.x - n.x * 0.04 * s, p.y - n.y * 0.04 * s, p.x - dx * 0.24 * s, p.y - dy * 0.24 * s, lw2);
     }
+    faceY = c0.y + 0.06 * s;
+  } else if (kind === 'purse'){
+    for (const x of [-0.5, -0.17, 0.17, 0.5]) pleat(ctx, x * 0.3 * s, -0.66 * s, x * s, -0.12 * s, { x: x * 0.25 * s, y: -0.1 * s }, lw2);
+    rrect(ctx, -0.32 * s, -0.86 * s, 0.64 * s, 0.17 * s, 0.085 * s, lw2, '#fff');
+    faceY = 0.32 * s;
+  } else {
+    const notch = { x: 0, y: -0.2 * s };
+    for (const [ex, ey] of [[-0.6,-0.62],[-0.4,-0.7],[-0.18,-0.55],[0.18,-0.55],[0.4,-0.7],[0.6,-0.62]])
+      pleat(ctx, notch.x, notch.y, ex * s, ey * s, { x: ex * 0.35 * s, y: 0.05 * s }, lw2);
+    swirl(ctx, 0, -0.19 * s, 0.075 * s, lw2);
+    faceY = 0.16 * s;
   }
-  if (edge === 'double'){
-    ctx.beginPath(); let pen = false;
-    for (let i = 0; i < pts.length; i++){
-      if (cp.ph[i] < 0){ pen = false; continue; }
-      const x = pts[i].x - nrm[i].x * 0.11 * s, y = pts[i].y - nrm[i].y * 0.11 * s;
-      if (!pen){ ctx.moveTo(x, y); pen = true; } else ctx.lineTo(x, y);
-    }
-    if (cp.all) ctx.closePath();
-    paintPath(ctx, lw2);
-  }
-
-  // pillow
-  const pk = edge === 'double' ? 0.58 : 0.64;
-  const pillow = pts.map(p => ({ x: c0.x + (p.x - c0.x) * pk, y: c0.y + (p.y - c0.y) * pk }));
-  shape(ctx, pillow, lw2, null);
-  if (shapeName === 'square' && rng.chance(0.55)){
-    for (const [dx, dy] of [[-1,-1],[1,-1],[-1,1],[1,1]]) seg(ctx, c0.x + dx * 0.62 * s, c0.y + dy * 0.62 * s, c0.x + dx * 0.71 * s, c0.y + dy * 0.71 * s, lw2);
+  // soft squish creases near the bottom
+  if ((kind === 'bao' || kind === 'xlb') && rng.chance(0.5)){
+    arc(ctx, -0.55 * s, 0.62 * s, 0.16 * s, Math.PI * 0.35, Math.PI * 0.7, lw2 * 0.9);
+    arc(ctx, 0.55 * s, 0.62 * s, 0.16 * s, Math.PI * 0.3, Math.PI * 0.65, lw2 * 0.9);
   }
 
   // face
-  const fx = c0.x, fy = c0.y - 0.02 * s;
-  const ex = 0.21 * s, ey = fy - 0.07 * s, er = 0.075 * s;
+  const fx = 0, fy = faceY;
+  const ex = 0.22 * s, ey = fy - 0.07 * s, er = 0.075 * s;
   drawEye(ctx, eyes === 'wink' ? 'dot' : eyes, fx - ex, ey, er, lw2);
   drawEye(ctx, eyes === 'wink' ? 'happy' : eyes, fx + ex, ey, er, lw2);
   if (brows){
     arc(ctx, fx - ex, ey - 0.09 * s, 0.08 * s, Math.PI + 0.5, Math.PI * 2 - 0.5, lw2);
     arc(ctx, fx + ex, ey - 0.09 * s, 0.08 * s, Math.PI + 0.5, Math.PI * 2 - 0.5, lw2);
   }
-  drawMouth(ctx, mouth, fx, fy + 0.14 * s, s, lw2);
+  drawMouth(ctx, mouth, fx, fy + 0.13 * s, s, lw2);
+  const bx = kind === 'purse' ? 0.4 : 0.45;
   if (blush === 'circle'){
-    ell(ctx, fx - 0.42 * s, fy + 0.07 * s, 0.075 * s, 0.05 * s, 0, lw2 * 0.85);
-    ell(ctx, fx + 0.42 * s, fy + 0.07 * s, 0.075 * s, 0.05 * s, 0, lw2 * 0.85);
+    ell(ctx, fx - bx * s, fy + 0.06 * s, 0.08 * s, 0.05 * s, 0, lw2 * 0.85);
+    ell(ctx, fx + bx * s, fy + 0.06 * s, 0.08 * s, 0.05 * s, 0, lw2 * 0.85);
   } else if (blush === 'lines'){
     for (const sgn of [-1, 1]) for (let i = -1; i <= 1; i++){
-      const bx = fx + sgn * 0.42 * s + i * 0.05 * s, by = fy + 0.07 * s;
-      seg(ctx, bx - 0.03 * s, by + 0.04 * s, bx + 0.03 * s, by - 0.04 * s, lw2 * 0.85);
+      const lx = fx + sgn * bx * s + i * 0.05 * s, ly = fy + 0.06 * s;
+      seg(ctx, lx - 0.03 * s, ly + 0.04 * s, lx + 0.03 * s, ly - 0.04 * s, lw2 * 0.85);
     }
   }
 
@@ -553,12 +609,12 @@ function drawRaviolo(ctx, rng, cx, cy, s, opt){
     circ(ctx, tx, ty - 0.3 * s, 0.035 * s, lw2, '#fff');
     circ(ctx, tx + 0.3 * s, ty - 0.22 * s, 0.035 * s, lw2, '#fff');
   } else if (acc === 'leaf'){
-    const ax = top.x + 0.02 * s, ay = top.y + 0.02 * s, bx = ax + 0.42 * s, by = ay - 0.34 * s;
+    const ax = top.x + 0.02 * s, ay = top.y + 0.02 * s, bx2 = ax + 0.42 * s, by2 = ay - 0.34 * s;
     ctx.beginPath(); ctx.moveTo(ax, ay);
-    ctx.quadraticCurveTo(ax + 0.02 * s, by - 0.06 * s, bx, by);
-    ctx.quadraticCurveTo(bx - 0.02 * s, ay + 0.06 * s, ax, ay);
+    ctx.quadraticCurveTo(ax + 0.02 * s, by2 - 0.06 * s, bx2, by2);
+    ctx.quadraticCurveTo(bx2 - 0.02 * s, ay + 0.06 * s, ax, ay);
     ctx.closePath(); paintPath(ctx, lw2, '#fff');
-    seg(ctx, ax + 0.04 * s, ay - 0.03 * s, bx - 0.05 * s, by + 0.04 * s, lw2 * 0.8);
+    seg(ctx, ax + 0.04 * s, ay - 0.03 * s, bx2 - 0.05 * s, by2 + 0.04 * s, lw2 * 0.8);
   } else if (acc === 'heart'){
     heartPath(ctx, c0.x + 0.98 * s, c0.y - 0.92 * s, 0.16 * s, 0.3); paintPath(ctx, lw2, '#fff');
   } else if (acc === 'sparkles'){
@@ -574,7 +630,7 @@ function drawRaviolo(ctx, rng, cx, cy, s, opt){
   }
   if (opt.steam && !hat){
     for (let i = -1; i <= 1; i++){
-      const x = top.x + i * 0.32 * s, y0 = top.y - 0.14 * s - (i ? 0.05 * s : 0), h = i ? 0.36 * s : 0.48 * s;
+      const x = top.x + i * 0.34 * s, y0 = top.y - 0.16 * s - (i ? 0.06 * s : 0), h = i ? 0.36 * s : 0.48 * s;
       ctx.beginPath(); ctx.moveTo(x, y0);
       ctx.bezierCurveTo(x - 0.13 * s, y0 - h * 0.35, x + 0.13 * s, y0 - h * 0.65, x, y0 - h);
       paintPath(ctx, lw2);
@@ -621,6 +677,35 @@ function drawMouth(ctx, kind, mx, my, s, lw){
 function drawPlate(ctx, cx, py, s){
   ell(ctx, cx, py, 1.3 * s, 0.5 * s, 0, 6, '#fff');
   ell(ctx, cx, py, 1.06 * s, 0.36 * s, 0, 4);
+}
+// Bamboo steamer, side view. The far rim goes behind the dumpling, the wall in front.
+function drawSteamerBack(ctx, cx, y, s){
+  ell(ctx, cx, y, 1.4 * s, 0.18 * s, 0, 5, '#fff');
+}
+function drawSteamerFront(ctx, cx, y, s){
+  const w = 2.8 * s, h = 0.56 * s, x0 = cx - w / 2;
+  rrect(ctx, x0, y, w, h, 0.06 * s, 6, '#fff');
+  ell(ctx, cx, y, 1.4 * s, 0.18 * s, 0, 0, '#fff');
+  ctx.beginPath(); ctx.ellipse(cx, y, 1.4 * s, 0.18 * s, 0, 0, Math.PI); paintPath(ctx, 5);
+  for (let x = x0 + 0.14 * s; x < x0 + w - 0.08 * s; x += 0.14 * s){
+    const dy = 0.18 * s * Math.sqrt(Math.max(0, 1 - Math.pow((x - cx) / (1.4 * s), 2)));
+    seg(ctx, x, y + dy + 0.04 * s, x, y + h - 0.05 * s, 3.5);
+  }
+  seg(ctx, x0 + 0.02 * s, y + h - 0.16 * s, x0 + w - 0.02 * s, y + h - 0.16 * s, 4);
+}
+function drawChopsticks(ctx, x, y, s, rot){
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  for (const dx of [-0.07, 0.07]){
+    ctx.beginPath();
+    ctx.moveTo(dx * s - 0.035 * s, -0.75 * s); ctx.lineTo(dx * s + 0.035 * s, -0.75 * s);
+    ctx.lineTo(dx * s + 0.02 * s, 0.75 * s); ctx.lineTo(dx * s - 0.02 * s, 0.75 * s); ctx.closePath();
+    paintPath(ctx, 4.5, '#fff');
+  }
+  ctx.restore();
+}
+function drawSoyDish(ctx, x, y, s){
+  ell(ctx, x, y, 0.36 * s, 0.15 * s, 0, 5, '#fff');
+  ell(ctx, x, y - 0.01 * s, 0.26 * s, 0.09 * s, 0, 4);
 }
 function drawFork(ctx, x, y, s, rot){
   ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
@@ -672,11 +757,10 @@ function drawDecor(ctx, rng, x, y, d){
     seg(ctx, -0.7 * d, 0, 0.7 * d, 0, lw * 0.8);
     ctx.restore();
   } else if (kind === 'mini'){
-    ctx.save(); ctx.translate(x, y); ctx.rotate(rng.range(-0.4, 0.4));
-    const o = squircle(4, 120).map(p => ({ x: p.x * d, y: p.y * d }));
-    shape(ctx, o, lw, '#fff');
-    shape(ctx, o.map(p => ({ x: p.x * 0.6, y: p.y * 0.6 })), lw * 0.8, null);
-    if (d >= 32){ circ(ctx, -0.2 * d, -0.08 * d, 0.07 * d, 0, INK); circ(ctx, 0.2 * d, -0.08 * d, 0.07 * d, 0, INK); arc(ctx, 0, 0.05 * d, 0.12 * d, 0.4, Math.PI - 0.4, lw * 0.75); }
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rng.range(-0.3, 0.3));
+    ell(ctx, 0, 0.05 * d, d, 0.82 * d, 0, lw, '#fff');
+    for (const a of [-150, -115, -90, -65, -30]){ const r = a * Math.PI / 180; pleat(ctx, 0, -0.72 * d, Math.cos(r) * 0.6 * d, -0.72 * d + (Math.sin(r) + 1) * 0.5 * d, { x: Math.cos(r) * 0.2 * d, y: 0 }, lw * 0.75); }
+    if (d >= 32){ circ(ctx, -0.25 * d, 0.22 * d, 0.07 * d, 0, INK); circ(ctx, 0.25 * d, 0.22 * d, 0.07 * d, 0, INK); arc(ctx, 0, 0.3 * d, 0.1 * d, 0.4, Math.PI - 0.4, lw * 0.75); }
     ctx.restore();
   } else {
     circ(ctx, x - 0.45 * d, y + 0.3 * d, 0.22 * d, lw); circ(ctx, x + 0.45 * d, y + 0.3 * d, 0.22 * d, lw); circ(ctx, x, y - 0.4 * d, 0.22 * d, lw);
@@ -696,7 +780,7 @@ function scatter(ctx, rng, n, rect, avoid){
 }
 
 /* ---------- the page ---------- */
-const WORDS = ['Ciao!', 'Squish!', 'Che fame!', 'Evviva!', 'Yum!', 'Coloriamo!', 'Buon appetito!', 'Abbracciami!'];
+const WORDS = ['Ciao!', 'Squish!', 'Che fame!', 'Evviva!', 'Yum!', 'Coloriamo!', 'Buon appetito!', 'Abbracciami!', 'Bao!'];
 
 function drawChrome(ctx, seed){
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
@@ -738,21 +822,35 @@ function generate(seed, keepPaint){
   const avoid = [];
 
   if (state.count === 1){
-    const s = 310, cx = W / 2, cy = rect.y + rect.h / 2 - 0.1 * s;
-    const plate = rng.chance(0.85), cutlery = plate && rng.chance(0.7), bubble = rng.chance(0.55);
-    if (plate){
-      drawPlate(lc, cx, cy + 0.7 * s, s);
-      avoid.push({ x: cx - 0.8 * s, y: cy + 0.7 * s, r: 0.6 * s }, { x: cx + 0.8 * s, y: cy + 0.7 * s, r: 0.6 * s }, { x: cx, y: cy + 0.7 * s, r: 0.65 * s });
+    const s = 310, cx = W / 2, cy = rect.y + rect.h / 2 - 0.12 * s;
+    const scene = rng.pick(['steamer','steamer','steamer','plate','none']);
+    const bubble = rng.chance(0.55);
+    if (scene === 'steamer'){
+      drawSteamerBack(lc, cx, cy + 0.62 * s, s);
+      avoid.push({ x: cx - 0.9 * s, y: cy + 0.9 * s, r: 0.6 * s }, { x: cx + 0.9 * s, y: cy + 0.9 * s, r: 0.6 * s }, { x: cx, y: cy + 0.9 * s, r: 0.7 * s });
+    } else if (scene === 'plate'){
+      drawPlate(lc, cx, cy + 0.6 * s, s);
+      avoid.push({ x: cx - 0.8 * s, y: cy + 0.6 * s, r: 0.6 * s }, { x: cx + 0.8 * s, y: cy + 0.6 * s, r: 0.6 * s }, { x: cx, y: cy + 0.6 * s, r: 0.65 * s });
     }
     if (bubble){
       const word = rng.pick(WORDS);
-      avoid.push(...drawBubble(lc, word, cx + 0.55 * s, cy - 1.12 * s, s, cx + 0.5 * s, cy - 0.88 * s));
+      avoid.push(...drawBubble(lc, word, cx + 0.55 * s, cy - 1.12 * s, s, cx + 0.45 * s, cy - 0.8 * s));
     }
-    avoid.push(drawRaviolo(lc, rng, cx, cy, s, { steam: !bubble && rng.chance(0.6) }));
-    if (cutlery){
-      drawFork(lc, cx - 1.56 * s, cy + 0.55 * s, s, rng.range(-0.08, 0.08));
-      drawSpoon(lc, cx + 1.56 * s, cy + 0.55 * s, s, rng.range(-0.08, 0.08));
-      avoid.push({ x: cx - 1.56 * s, y: cy + 0.4 * s, r: 0.75 * s }, { x: cx + 1.56 * s, y: cy + 0.4 * s, r: 0.75 * s });
+    avoid.push(drawRaviolo(lc, rng, cx, cy, s, { steam: !bubble && rng.chance(0.75), inBasket: scene === 'steamer' }));
+    if (scene === 'steamer'){
+      drawSteamerFront(lc, cx, cy + 0.62 * s, s);
+      if (rng.chance(0.75)){
+        drawChopsticks(lc, cx + 1.38 * s, cy + 0.62 * s, s, 0.28);
+        avoid.push({ x: cx + 1.4 * s, y: cy + 0.55 * s, r: 0.8 * s });
+      }
+      if (rng.chance(0.6)){
+        drawSoyDish(lc, cx - 1.22 * s, cy + 1.32 * s, s);
+        avoid.push({ x: cx - 1.22 * s, y: cy + 1.32 * s, r: 0.45 * s });
+      }
+    } else if (scene === 'plate' && rng.chance(0.7)){
+      drawFork(lc, cx - 1.56 * s, cy + 0.45 * s, s, rng.range(-0.08, 0.08));
+      drawSpoon(lc, cx + 1.56 * s, cy + 0.45 * s, s, rng.range(-0.08, 0.08));
+      avoid.push({ x: cx - 1.56 * s, y: cy + 0.3 * s, r: 0.75 * s }, { x: cx + 1.56 * s, y: cy + 0.3 * s, r: 0.75 * s });
     }
     scatter(lc, rng, 9, rect, avoid);
   } else {
