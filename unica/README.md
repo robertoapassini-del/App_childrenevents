@@ -45,6 +45,33 @@ sul telefono. Non esce di lì: l'app non ha accesso alla rete e il backup è
 disattivato. Il cestino in alto nell'elenco cancella tutto (le chat originali in
 Signal e WhatsApp non vengono toccate).
 
+## Provare senza un telefono
+
+Due cose si possono guardare subito, senza Android SDK e senza installare niente.
+
+**`poc/` — le regole, eseguite davvero.**
+
+```
+./gradlew -p poc run
+```
+
+Rigioca il traffico di una mattinata — chat normali, un gruppo, il rumore che le due app
+pubblicano, e la riproposta completa che Android fa a ogni riconnessione del listener —
+attraverso `data/Inbox.kt` e `notif/NotificationRules.kt`, cioè i file dell'app compilati
+dal suo stesso albero dei sorgenti, non copie. Stampa la casella che ne esce e la verifica.
+È un progetto Gradle separato apposta: gira su una JVM qualsiasi, senza Android.
+
+Le due cose che conta dimostrare sono lì dentro: che i doppioni non entrano (nessuna delle
+due app pubblica una notifica per messaggio — ri-pubblicano la stessa con dentro le ultime
+righe) e che l'azione di risposta giusta viene riconosciuta fra le altre.
+
+**`demo/index.html` — l'interfaccia, da toccare.**
+
+Si apre in un browser, senza server. A sinistra le notifiche grezze da pubblicare una a
+una, a destra il telefono che reagisce. Le regole sono le stesse, riscritte in JavaScript.
+Le notifiche però sono scritte a mano: `NotificationListenerService` e `RemoteInput` lì
+non esistono.
+
 ## Compilare
 
 ```

@@ -194,7 +194,7 @@ private fun ConversationRow(conversation: Conversation, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(conversation.source.accent)
+                        .background(conversation.source.badgeFill)
                         .padding(horizontal = 6.dp, vertical = 1.dp),
                 )
             }

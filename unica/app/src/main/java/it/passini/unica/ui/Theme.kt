@@ -19,6 +19,17 @@ val Source.accent: Color
         Source.WHATSAPP -> Color(0xFF25D366)
     }
 
+/**
+ * The same two identities, darkened enough to carry white text. WhatsApp's own green is
+ * far too light for that — it sits around 2:1 against white — so the badge and the unread
+ * pill use these instead of [accent], which stays for tints and large marks.
+ */
+val Source.badgeFill: Color
+    get() = when (this) {
+        Source.SIGNAL -> Color(0xFF2E62D4)
+        Source.WHATSAPP -> Color(0xFF0E8A44)
+    }
+
 private val LightScheme = lightColorScheme(primary = Color(0xFF3A76F0))
 private val DarkScheme = darkColorScheme(primary = Color(0xFF9DB9F8))
 

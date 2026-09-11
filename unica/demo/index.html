@@ -1,0 +1,751 @@
+<meta charset="utf-8">
+<title>Casella unica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=Roboto:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#EDF1F6; --surface:#FFFFFF; --raised:#F6F8FB; --line:#D6DDE7; --line-soft:#E6EBF2;
+  --ink:#131A22; --muted:#5A6877; --faint:#8C99A8;
+  --signal:#3A76F0; --signal-fill:#2E62D4; --signal-wash:#E6EDFD;
+  --wa:#12A150; --wa-fill:#0E8A44; --wa-wash:#DFF3E7;
+  --badge-ink:#FFFFFF;
+  --ok:#0E8A44; --drop:#8C99A8; --warn:#9A6A06;
+  --shell:#1A212A; --screen:#FFFFFF;
+  --bubble-in:#EEF1F6; --bubble-out:#DCE8FD;
+  --shadow:0 1px 2px rgba(19,26,34,.07), 0 12px 32px -12px rgba(19,26,34,.22);
+  --display:"Familjen Grotesk","Helvetica Neue",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,sans-serif;
+  --device:"Roboto",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0C1015; --surface:#151B23; --raised:#1B222C; --line:#28323E; --line-soft:#1F2833;
+    --ink:#E3E9F1; --muted:#94A1B0; --faint:#6B7988;
+    --signal:#8CB0F8; --signal-fill:#9DBCFA; --signal-wash:#1A2740;
+    --wa:#4FD08A; --wa-fill:#5FD394; --wa-wash:#12301F;
+    --badge-ink:#0C1015;
+    --ok:#4FD08A; --drop:#6B7988; --warn:#D6A23F;
+    --shell:#000000; --screen:#12181F;
+    --bubble-in:#222B36; --bubble-out:#1E3157;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 16px 40px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0C1015; --surface:#151B23; --raised:#1B222C; --line:#28323E; --line-soft:#1F2833;
+  --ink:#E3E9F1; --muted:#94A1B0; --faint:#6B7988;
+  --signal:#8CB0F8; --signal-fill:#9DBCFA; --signal-wash:#1A2740;
+  --wa:#4FD08A; --wa-fill:#5FD394; --wa-wash:#12301F;
+  --badge-ink:#0C1015;
+  --ok:#4FD08A; --drop:#6B7988; --warn:#D6A23F;
+  --shell:#000000; --screen:#12181F;
+  --bubble-in:#222B36; --bubble-out:#1E3157;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 16px 40px -16px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--body); font-size:16px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px; margin:0 auto; padding-inline:20px; padding-block:40px 64px}
+
+/* ---------- header ---------- */
+.masthead{display:flex; flex-direction:column; gap:10px; margin-bottom:34px; max-width:62ch}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted);
+}
+h1{
+  font-family:var(--display); font-weight:700; font-size:clamp(30px,5vw,44px);
+  line-height:1.05; margin:0; letter-spacing:-.02em; text-wrap:balance;
+}
+.lede{margin:0; color:var(--muted); font-size:17px; text-wrap:pretty}
+.lede b{color:var(--ink); font-weight:600}
+
+/* ---------- stage ---------- */
+.stage{display:grid; grid-template-columns:minmax(0,1fr) 348px; gap:34px; align-items:start}
+@media (max-width:880px){
+  .stage{grid-template-columns:minmax(0,1fr); gap:28px}
+  .device-col{order:-1}
+}
+
+/* ---------- phone ---------- */
+.device-col{position:sticky; top:18px}
+.phone{
+  background:var(--shell); border-radius:34px; padding:9px;
+  box-shadow:var(--shadow); margin-inline:auto; max-width:348px;
+}
+.screen{
+  background:var(--screen); border-radius:26px; overflow:hidden;
+  font-family:var(--device); display:flex; flex-direction:column; height:600px;
+}
+.statusbar{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:9px 18px 3px; font-size:12px; font-weight:500; color:var(--muted);
+}
+.appbar{
+  display:flex; align-items:center; gap:10px; padding:10px 14px;
+  border-bottom:1px solid var(--line-soft);
+}
+.appbar h2{font-family:var(--device); font-size:19px; font-weight:500; margin:0; flex:1; letter-spacing:.01em}
+.iconbtn{
+  border:0; background:none; color:var(--muted); cursor:pointer; padding:6px;
+  border-radius:50%; line-height:0; display:grid; place-items:center;
+}
+.iconbtn:hover{background:var(--raised); color:var(--ink)}
+.iconbtn:focus-visible{outline:2px solid var(--signal); outline-offset:1px}
+
+.chips{display:flex; gap:7px; padding:11px 14px 9px; flex-wrap:wrap}
+.chip{
+  font-family:var(--device); font-size:13px; border:1px solid var(--line);
+  background:transparent; color:var(--muted); border-radius:8px; padding:4px 11px;
+  cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+}
+.chip[aria-pressed="true"]{background:var(--raised); color:var(--ink); border-color:var(--ink)}
+.chip:focus-visible{outline:2px solid var(--signal); outline-offset:1px}
+.dot{width:8px; height:8px; border-radius:50%; display:inline-block}
+.dot.signal{background:var(--signal)} .dot.whatsapp{background:var(--wa)}
+
+.list{flex:1; overflow-y:auto; overscroll-behavior:contain}
+.row{
+  display:flex; gap:12px; align-items:center; width:100%; text-align:left;
+  padding:11px 14px; background:none; border:0; border-bottom:1px solid var(--line-soft);
+  cursor:pointer; font-family:var(--device); color:inherit;
+}
+.row:hover{background:var(--raised)}
+.row:focus-visible{outline:2px solid var(--signal); outline-offset:-2px}
+@media (prefers-reduced-motion:no-preference){
+  .row.flash{animation:flash .9s ease-out}
+}
+@keyframes flash{from{background:var(--signal-wash)} to{background:transparent}}
+.avatar{
+  width:42px; height:42px; border-radius:50%; flex:none; display:grid; place-items:center;
+  font-size:17px; font-weight:500;
+}
+.avatar.signal{background:var(--signal-wash); color:var(--signal)}
+.avatar.whatsapp{background:var(--wa-wash); color:var(--wa)}
+.rowmain{flex:1; min-width:0}
+.rowtop{display:flex; align-items:center; gap:6px}
+.rowtitle{font-size:15px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.badge{
+  font-size:10px; font-weight:500; letter-spacing:.02em; padding:1px 5px; border-radius:4px;
+  color:var(--badge-ink); flex:none;
+}
+.badge.signal{background:var(--signal-fill)} .badge.whatsapp{background:var(--wa-fill)}
+.preview{
+  font-size:13px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.rowend{display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex:none}
+.time{font-size:11px; color:var(--faint); font-variant-numeric:tabular-nums}
+.unread{
+  min-width:18px; height:18px; border-radius:9px; display:grid; place-items:center;
+  font-size:11px; font-weight:500; color:var(--badge-ink); padding:0 5px;
+}
+.unread.signal{background:var(--signal-fill)} .unread.whatsapp{background:var(--wa-fill)}
+.blank{padding:46px 26px; text-align:center; color:var(--faint); font-size:13px; line-height:1.6}
+
+/* chat */
+.thread{flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:7px}
+.bubble{max-width:78%; padding:7px 11px; border-radius:14px; font-size:14px; line-height:1.4}
+.bubble.in{background:var(--bubble-in); align-self:flex-start; border-bottom-left-radius:5px}
+.bubble.out{background:var(--bubble-out); align-self:flex-end; border-bottom-right-radius:5px}
+.who{font-size:11px; font-weight:500; margin-bottom:2px}
+.who.signal{color:var(--signal)} .who.whatsapp{color:var(--wa)}
+.stamp{font-size:10px; color:var(--faint); text-align:right; margin-top:2px; font-variant-numeric:tabular-nums}
+.composer{display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--line-soft); align-items:center}
+.composer input{
+  flex:1; min-width:0; font-family:var(--device); font-size:14px; padding:8px 13px;
+  border-radius:20px; border:1px solid var(--line); background:var(--surface); color:var(--ink);
+}
+.composer input:focus-visible{outline:2px solid var(--signal); outline-offset:-1px; border-color:transparent}
+.send{
+  border:0; background:var(--signal-fill); color:var(--badge-ink); width:36px; height:36px;
+  border-radius:50%; cursor:pointer; flex:none; display:grid; place-items:center;
+}
+.send:disabled{background:var(--line); color:var(--faint); cursor:not-allowed}
+.noreply{
+  padding:11px 14px; border-top:1px solid var(--line-soft); display:flex; gap:10px;
+  align-items:center; font-size:12px; color:var(--muted); line-height:1.4;
+}
+.noreply button{
+  border:1px solid var(--line); background:none; color:var(--ink); font-family:var(--device);
+  font-size:12px; padding:5px 9px; border-radius:7px; cursor:pointer; flex:none;
+}
+.caption{margin:12px auto 0; max-width:348px; font-size:12.5px; color:var(--faint); text-align:center; line-height:1.5}
+
+/* ---------- notification stream ---------- */
+.sectitle{
+  font-family:var(--display); font-size:13px; font-weight:600; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 4px;
+}
+.secnote{margin:0 0 16px; font-size:14.5px; color:var(--muted); max-width:58ch}
+.stack{display:flex; flex-direction:column; gap:11px}
+
+.notif{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:13px 15px; display:flex; flex-direction:column; gap:9px;
+}
+.notif.spent{opacity:.58}
+.notif.junk{border-style:dashed}
+.notif-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.notif-app{font-family:var(--mono); font-size:11px; color:var(--muted)}
+.notif-title{font-weight:600; font-size:15px; flex:1; min-width:120px}
+.lines{
+  margin:0; padding:0 0 0 13px; border-left:2px solid var(--line);
+  display:flex; flex-direction:column; gap:3px; list-style:none;
+}
+.lines li{font-size:13.5px; color:var(--ink)}
+.lines .from{color:var(--muted)}
+.lines .self{color:var(--muted); font-style:italic}
+.meta{display:flex; gap:6px; flex-wrap:wrap}
+.tag{
+  font-family:var(--mono); font-size:10.5px; padding:2px 6px; border-radius:5px;
+  background:var(--raised); color:var(--muted); border:1px solid var(--line-soft);
+}
+.notif .why{margin:0; font-size:13.5px; color:var(--muted); line-height:1.5}
+.notif-foot{display:flex; align-items:center; gap:11px; flex-wrap:wrap}
+.verdict{font-family:var(--mono); font-size:11.5px; flex:1; min-width:150px}
+.verdict.ok{color:var(--ok)} .verdict.dropped{color:var(--drop)} .verdict.dup{color:var(--warn)}
+
+.btn{
+  font-family:var(--body); font-weight:600; font-size:13.5px; padding:6px 13px;
+  border-radius:8px; border:1px solid var(--ink); background:var(--ink); color:var(--ground);
+  cursor:pointer; flex:none;
+}
+.btn:hover{opacity:.86}
+.btn:disabled{background:transparent; color:var(--faint); border-color:var(--line); cursor:not-allowed; opacity:1}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+.btn:focus-visible{outline:2px solid var(--signal); outline-offset:2px}
+
+.controls{display:flex; gap:9px; flex-wrap:wrap; margin:20px 0 26px}
+
+/* ---------- footnotes ---------- */
+@media (max-width:520px){
+  /* Keep the package name on its own line instead of letting it ragged-wrap mid-row. */
+  .notif-app{flex-basis:100%; order:3}
+}
+.notes{
+  margin-top:44px; padding-top:26px; border-top:1px solid var(--line);
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr)); gap:26px;
+}
+.note h3{font-family:var(--display); font-size:15px; margin:0 0 7px; font-weight:600}
+.note p{margin:0; font-size:14px; color:var(--muted); line-height:1.6}
+.note code{font-family:var(--mono); font-size:12.5px; color:var(--ink)}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <span class="eyebrow">Prototipo interattivo</span>
+    <h1>Una casella sola per Signal e WhatsApp</h1>
+    <p class="lede">A sinistra le notifiche così come le due app le pubblicano. A destra Unica, che le
+      raccoglie in un elenco unico tenendo <b>l'etichetta di provenienza</b> su ogni chat.
+      Pubblica una notifica e guarda cosa succede al telefono.</p>
+  </header>
+
+  <div class="stage">
+    <section aria-labelledby="stream-title">
+      <h2 class="sectitle" id="stream-title">Il flusso di notifiche</h2>
+      <p class="secnote">Le prime quattro sono già arrivate. Restano il rumore che le due app
+        pubblicano di continuo, una notifica ri-postata, e la riproposta completa che Android fa
+        ogni volta che il listener si ricollega.</p>
+
+      <div class="controls">
+        <button class="btn ghost" id="reconnect">Riconnetti il listener</button>
+        <button class="btn ghost" id="dismiss">L'utente scarta la notifica di Mamma</button>
+        <button class="btn ghost" id="reset">Ricomincia</button>
+      </div>
+
+      <div class="stack" id="stack"></div>
+    </section>
+
+    <section class="device-col" aria-label="Unica sul telefono">
+      <div class="phone">
+        <div class="screen" id="screen"></div>
+      </div>
+      <p class="caption">Tocca una chat per aprirla. Le risposte partono dall'azione di risposta
+        rapida della notifica originale.</p>
+    </section>
+  </div>
+
+  <section class="notes">
+    <div class="note">
+      <h3>Cosa è vero qui dentro</h3>
+      <p>Le regole che decidono cosa è un messaggio, come si chiama una chat e quali doppioni
+        scartare sono le stesse del codice Android, riscritte in JavaScript riga per riga —
+        compreso l'hash con cui si riconosce un messaggio già visto.</p>
+    </div>
+    <div class="note">
+      <h3>Cosa è finto</h3>
+      <p>Le notifiche sono scritte a mano. Su un telefono vero arrivano da
+        <code>NotificationListenerService</code> e la risposta parte da
+        <code>RemoteInput</code>, che qui non esistono.</p>
+    </div>
+    <div class="note">
+      <h3>Perché la risposta può sparire</h3>
+      <p>L'azione di risposta vive dentro la notifica. Scartata quella, non c'è più niente da
+        attivare: Unica lo dice invece di far finta di aver inviato. Prova il pulsante
+        «L'utente scarta la notifica di Mamma».</p>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   Le regole, portate una a una dal codice Kotlin dell'app.
+   Kotlin: data/Inbox.kt e notif/NotificationRules.kt
+   ============================================================ */
+
+/** String.hashCode di Java, così gli id dei messaggi coincidono con quelli dell'app. */
+function javaHash(s){
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return h;
+}
+const messageId = (ts, sender, text) => ts + '|' + sender + '|' + javaHash(text);
+
+const SOURCES = {
+  'com.whatsapp': {key:'whatsapp', label:'WhatsApp'},
+  'org.thoughtcrime.securesms': {key:'signal', label:'Signal'},
+};
+const sourceOf = pkg => SOURCES[pkg] || null;
+const idFor = (pkg, title) => pkg + '|' + title;
+const convIdOf = e => idFor(e.n.pkg, Rules.conversationTitle(e.n.facts) ?? '');
+
+const Rules = {
+  isMessage: f => !f.groupSummary && !f.ongoing && f.category !== 'service' && f.category !== 'progress',
+  conversationTitle(f){
+    const t = (f.conversationTitle ?? f.contentTitle ?? '').trim();
+    return t.length ? t : null;
+  },
+  isGroup: f => f.isGroupConversation || f.conversationTitle != null,
+  pickReplyAction(actions){
+    let fallback = null;
+    for (let i = 0; i < actions.length; i++){
+      if (!actions[i].freeForm) continue;
+      if (actions[i].reply) return i;
+      if (fallback === null) fallback = i;
+    }
+    return fallback;
+  },
+};
+
+const MAX_MESSAGES = 200, MAX_CONVERSATIONS = 100;
+const lastOf = c => c.messages[c.messages.length - 1] || null;
+const lastTime = c => (lastOf(c) ? lastOf(c).timestamp : 0);
+
+/** Restituisce la stessa lista quando non c'è niente di nuovo. */
+function ingest(current, {source, pkg, title, isGroup, incoming, isActiveChat}){
+  if (!incoming.length) return {conversations: current, added: []};
+  const id = idFor(pkg, title);
+  const existing = current.find(c => c.id === id)
+    || {id, source, pkg, title, isGroup, messages: [], unread: 0};
+
+  const known = new Set(existing.messages.map(m => m.id));
+  const fresh = incoming.filter(m => (known.has(m.id) ? false : (known.add(m.id), true)));
+  if (!fresh.length) return {conversations: current, added: []};
+
+  const merged = existing.messages.concat(fresh)
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .slice(-MAX_MESSAGES);
+
+  const updated = Object.assign({}, existing, {
+    title, isGroup, messages: merged,
+    unread: isActiveChat ? 0 : existing.unread + fresh.filter(m => !m.outgoing).length,
+  });
+
+  const conversations = current.filter(c => c.id !== id).concat([updated])
+    .sort((a, b) => lastTime(b) - lastTime(a))
+    .slice(0, MAX_CONVERSATIONS);
+
+  return {conversations, added: fresh};
+}
+
+function markRead(current, id){
+  if (!current.some(c => c.id === id && c.unread > 0)) return current;
+  return current.map(c => (c.id === id ? Object.assign({}, c, {unread: 0}) : c));
+}
+
+/* ============================================================
+   Il traffico: la stessa mattinata che replica il proof of concept in Kotlin.
+   ============================================================ */
+
+const WA = 'com.whatsapp', SIG = 'org.thoughtcrime.securesms';
+const REPLY = {freeForm:true, reply:true};
+const MARK_READ = {freeForm:false, reply:false};
+const t = m => new Date(Date.UTC(2026, 8, 12, 9, 30 + m)).getTime();
+
+const direct = (pkg, contact, lines) => ({
+  pkg, actions:[REPLY, MARK_READ], lines,
+  facts:{groupSummary:false, ongoing:false, category:'msg',
+         conversationTitle:null, contentTitle:contact, isGroupConversation:false},
+});
+const group = (pkg, name, lines) => ({
+  pkg, actions:[MARK_READ, REPLY], lines,
+  facts:{groupSummary:false, ongoing:false, category:'msg',
+         conversationTitle:name, contentTitle:name, isGroupConversation:true},
+});
+const junk = (pkg, title, over) => ({
+  pkg, actions:[], lines:[{sender:'sistema', text:title, at:t(9)}],
+  facts:Object.assign({groupSummary:false, ongoing:false, category:'msg',
+         conversationTitle:null, contentTitle:title, isGroupConversation:false}, over),
+});
+
+const SCRIPT = [
+  {id:'mamma1', note:'Il primo messaggio della mattina.', boot:true, live:true,
+   n:direct(WA, 'Mamma', [{sender:'Mamma', text:'Ciao! A che ora arrivate domenica?', at:t(1)}])},
+
+  {id:'mamma2', note:'WhatsApp non pubblica una notifica per messaggio: ri-pubblica la stessa con dentro anche la riga di prima.',
+   boot:true, live:true,
+   n:direct(WA, 'Mamma', [
+     {sender:'Mamma', text:'Ciao! A che ora arrivate domenica?', at:t(1)},
+     {sender:'Mamma', text:'Ho fatto la torta', at:t(3)}])},
+
+  {id:'giulia1', note:'Stessa cosa dall’altra app.', boot:true, live:true,
+   n:direct(SIG, 'Giulia', [{sender:'Giulia', text:'Hai visto la circolare della scuola?', at:t(5)}])},
+
+  {id:'classe', note:'Un gruppo: qui MessagingStyle dà un nome alla conversazione e un mittente a ogni riga.',
+   boot:true, live:true,
+   n:group(WA, 'Classe 3ªB', [
+     {sender:'Elena', text:'Domani porto io i bicchieri', at:t(6)},
+     {sender:'Marco', text:'Io i tovaglioli', at:t(7)},
+     {sender:'Elena', text:'Manca qualcuno per la torta?', at:t(8)}])},
+
+  {id:'giulia2', note:'Giulia scrive di nuovo, e la notifica si porta dietro la riga già vista.',
+   n:direct(SIG, 'Giulia', [
+     {sender:'Giulia', text:'Hai visto la circolare della scuola?', at:t(5)},
+     {sender:'Giulia', text:'Ok allora ci sentiamo dopo', at:t(14)}]), live:true},
+
+  {id:'j1', junk:true, note:'Il servizio in primo piano di WhatsApp.',
+   n:junk(WA, 'Controllo nuovi messaggi…', {ongoing:true})},
+
+  {id:'j2', junk:true, note:'Il riepilogo che conta le chat invece di contenerne una.',
+   n:junk(WA, '5 messaggi da 3 chat', {groupSummary:true})},
+
+  {id:'j3', junk:true, note:'La notifica di servizio di Signal.',
+   n:junk(SIG, 'Signal è in esecuzione', {category:'service'})},
+
+  {id:'j4', junk:true, note:'E un’app che Unica non rispecchia affatto.',
+   n:junk('org.telegram.messenger', 'Luca', {})},
+];
+
+/* ============================================================
+   Stato
+   ============================================================ */
+
+let conversations = [], repliable = new Set(), spent = new Set(), dismissed = new Set(), verdicts = {};
+let view = {screen:'inbox', openId:null}, filter = null, flash = null, draft = '';
+
+function onPosted(entry, {silent} = {}){
+  const {n} = entry;
+  const src = sourceOf(n.pkg);
+  if (!src) return record(entry, 'dropped', 'scartata · app non rispecchiata', silent);
+  if (!Rules.isMessage(n.facts)) return record(entry, 'dropped', 'scartata · non è un messaggio', silent);
+  const title = Rules.conversationTitle(n.facts);
+  if (!title) return record(entry, 'dropped', 'scartata · non nomina nessuna chat', silent);
+
+  const id = idFor(n.pkg, title);
+  dismissed.delete(id);
+  if (Rules.pickReplyAction(n.actions) !== null) repliable.add(id); else repliable.delete(id);
+
+  const incoming = n.lines.map(l => ({
+    id: messageId(l.at, l.sender ?? '', l.text),
+    sender: l.sender ?? '', text: l.text, timestamp: l.at, outgoing: l.sender == null,
+  }));
+
+  const res = ingest(conversations, {
+    source: src.key, pkg: n.pkg, title, isGroup: Rules.isGroup(n.facts),
+    incoming, isActiveChat: view.openId === id,
+  });
+  conversations = res.conversations;
+
+  if (!res.added.length) return record(entry, 'dup', 'già vista · 0 nuovi messaggi', silent);
+  flash = id;
+  const many = res.added.length > 1;
+  return record(entry, 'ok', res.added.length + (many ? ' nuovi messaggi' : ' nuovo messaggio'), silent);
+}
+
+function record(entry, kind, text, silent){
+  verdicts[entry.id] = {kind, text};
+  if (!silent) spent.add(entry.id);
+  return kind;
+}
+
+function sendReply(id, text){
+  const c = conversations.find(x => x.id === id);
+  const at = t(20);
+  conversations = ingest(conversations, {
+    source:c.source, pkg:c.pkg, title:c.title, isGroup:c.isGroup, isActiveChat:true,
+    incoming:[{id:messageId(at, '', text), sender:'', text, timestamp:at, outgoing:true}],
+  }).conversations;
+}
+
+function reset(){
+  conversations = []; repliable = new Set(); spent = new Set(); dismissed = new Set(); verdicts = {};
+  view = {screen:'inbox', openId:null}; filter = null; flash = null; draft = '';
+  SCRIPT.filter(e => e.boot).forEach(e => { onPosted(e); });
+  flash = null;
+  render();
+}
+
+/* ============================================================
+   Interfaccia
+   ============================================================ */
+
+const el = (tag, cls, text) => {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text != null) node.textContent = text;
+  return node;
+};
+const hhmm = ms => new Date(ms).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit', timeZone:'UTC'});
+const labelOf = key => (key === 'signal' ? 'Signal' : 'WhatsApp');
+
+const ICON = {
+  back:'M19 12H5m7-7-7 7 7 7',
+  trash:'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  out:'M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4M14 4h6v6M20 4l-9 9',
+  send:'M4 12l16-8-6 16-2.5-6.5L4 12z',
+};
+function icon(path, size){
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', size || 20); svg.setAttribute('height', size || 20);
+  svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.7'); svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round'); svg.setAttribute('aria-hidden', 'true');
+  const p = document.createElementNS(ns, 'path');
+  p.setAttribute('d', path);
+  svg.appendChild(p);
+  return svg;
+}
+
+function render(){ renderScreen(); renderStack(); }
+
+function renderScreen(){
+  const screen = document.getElementById('screen');
+  screen.textContent = '';
+
+  const bar = el('div', 'statusbar');
+  bar.append(el('span', null, '09:44'), el('span', null, '●●●'));
+  screen.appendChild(bar);
+
+  if (view.screen === 'chat'){ renderChat(screen); return; }
+
+  const appbar = el('div', 'appbar');
+  appbar.appendChild(el('h2', null, 'Unica'));
+  const trash = el('button', 'iconbtn');
+  trash.type = 'button';
+  trash.setAttribute('aria-label', 'Svuota la cronologia');
+  trash.appendChild(icon(ICON.trash));
+  trash.onclick = () => { conversations = []; render(); };
+  appbar.appendChild(trash);
+  screen.appendChild(appbar);
+
+  const chips = el('div', 'chips');
+  [[null, 'Tutte'], ['signal', 'Signal'], ['whatsapp', 'WhatsApp']].forEach(([key, label]) => {
+    const b = el('button', 'chip');
+    b.type = 'button';
+    b.setAttribute('aria-pressed', String(filter === key));
+    if (key) b.appendChild(el('span', 'dot ' + key));
+    b.appendChild(el('span', null, label));
+    b.onclick = () => { filter = filter === key ? null : key; render(); };
+    chips.appendChild(b);
+  });
+  screen.appendChild(chips);
+
+  const list = el('div', 'list');
+  const shown = conversations.filter(c => !filter || c.source === filter);
+  if (!shown.length){
+    list.appendChild(el('div', 'blank',
+      conversations.length ? 'Nessuna chat da questa app.'
+        : 'Nessun messaggio. Le chat compaiono appena arriva una notifica.'));
+  }
+  shown.forEach(c => list.appendChild(conversationRow(c)));
+  screen.appendChild(list);
+}
+
+function conversationRow(c){
+  const last = lastOf(c);
+  const row = el('button', 'row' + (flash === c.id ? ' flash' : ''));
+  row.type = 'button';
+  row.appendChild(el('span', 'avatar ' + c.source, c.title.charAt(0).toUpperCase()));
+
+  const main = el('div', 'rowmain');
+  const top = el('div', 'rowtop');
+  top.append(el('span', 'rowtitle', c.title), el('span', 'badge ' + c.source, labelOf(c.source)));
+  main.appendChild(top);
+
+  const preview = !last ? ''
+    : last.outgoing ? 'Tu: ' + last.text
+    : c.isGroup ? last.sender + ': ' + last.text
+    : last.text;
+  main.appendChild(el('div', 'preview', preview));
+  row.appendChild(main);
+
+  const end = el('div', 'rowend');
+  end.appendChild(el('span', 'time', hhmm(lastTime(c))));
+  if (c.unread > 0) end.appendChild(el('span', 'unread ' + c.source, String(c.unread)));
+  row.appendChild(end);
+
+  row.onclick = () => {
+    view = {screen:'chat', openId:c.id};
+    conversations = markRead(conversations, c.id);
+    draft = ''; flash = null;
+    render();
+  };
+  return row;
+}
+
+function renderChat(screen){
+  const c = conversations.find(x => x.id === view.openId);
+  if (!c){ view = {screen:'inbox', openId:null}; renderScreen(); return; }
+
+  const appbar = el('div', 'appbar');
+  const back = el('button', 'iconbtn');
+  back.type = 'button'; back.setAttribute('aria-label', 'Indietro');
+  back.appendChild(icon(ICON.back));
+  back.onclick = () => { view = {screen:'inbox', openId:null}; render(); };
+  appbar.appendChild(back);
+  appbar.appendChild(el('span', 'avatar ' + c.source, c.title.charAt(0).toUpperCase()));
+
+  const heading = el('div', 'rowmain');
+  heading.appendChild(el('div', 'rowtitle', c.title));
+  const badgeLine = el('div');
+  badgeLine.appendChild(el('span', 'badge ' + c.source, labelOf(c.source)));
+  heading.appendChild(badgeLine);
+  appbar.appendChild(heading);
+
+  const openIn = el('button', 'iconbtn');
+  openIn.type = 'button'; openIn.setAttribute('aria-label', 'Apri in ' + labelOf(c.source));
+  openIn.appendChild(icon(ICON.out));
+  appbar.appendChild(openIn);
+  screen.appendChild(appbar);
+
+  const thread = el('div', 'thread');
+  c.messages.forEach(m => {
+    const b = el('div', 'bubble ' + (m.outgoing ? 'out' : 'in'));
+    if (c.isGroup && !m.outgoing && m.sender) b.appendChild(el('div', 'who ' + c.source, m.sender));
+    b.appendChild(el('div', null, m.text));
+    b.appendChild(el('div', 'stamp', hhmm(m.timestamp)));
+    thread.appendChild(b);
+  });
+  screen.appendChild(thread);
+
+  if (repliable.has(c.id)) screen.appendChild(composer(c));
+  else screen.appendChild(noReply(c));
+
+  requestAnimationFrame(() => { thread.scrollTop = thread.scrollHeight; });
+}
+
+function composer(c){
+  const bar = el('div', 'composer');
+  const input = document.createElement('input');
+  input.id = 'draft'; input.type = 'text'; input.placeholder = 'Messaggio';
+  input.value = draft; input.autocomplete = 'off';
+  input.setAttribute('aria-label', 'Messaggio per ' + c.title);
+
+  const send = el('button', 'send');
+  send.type = 'button'; send.setAttribute('aria-label', 'Invia');
+  send.appendChild(icon(ICON.send, 18));
+  send.disabled = !draft.trim();
+
+  const submit = () => {
+    const text = input.value.trim();
+    if (!text) return;
+    sendReply(c.id, text);
+    draft = '';
+    render();
+    requestAnimationFrame(() => document.getElementById('draft')?.focus());
+  };
+  input.oninput = () => { draft = input.value; send.disabled = !draft.trim(); };
+  input.onkeydown = e => { if (e.key === 'Enter') submit(); };
+  send.onclick = submit;
+
+  bar.append(input, send);
+  return bar;
+}
+
+function noReply(c){
+  const bar = el('div', 'noreply');
+  bar.appendChild(el('span', null,
+    'La notifica di questa chat non è più attiva, quindi non si può rispondere da qui.'));
+  bar.appendChild(el('button', null, 'Apri ' + labelOf(c.source)));
+  return bar;
+}
+
+function renderStack(){
+  const stack = document.getElementById('stack');
+  stack.textContent = '';
+  SCRIPT.forEach(entry => stack.appendChild(notifCard(entry)));
+  document.getElementById('dismiss').disabled = !repliable.has(idFor(WA, 'Mamma'));
+}
+
+function notifCard(entry){
+  const {n} = entry;
+  const src = sourceOf(n.pkg);
+  const card = el('div', 'notif' + (spent.has(entry.id) ? ' spent' : '') + (entry.junk ? ' junk' : ''));
+
+  const head = el('div', 'notif-head');
+  if (src) head.appendChild(el('span', 'badge ' + src.key, src.label));
+  head.appendChild(el('span', 'notif-title', n.facts.conversationTitle ?? n.facts.contentTitle));
+  head.appendChild(el('span', 'notif-app', n.pkg));
+  card.appendChild(head);
+
+  if (!entry.junk){
+    const lines = el('ul', 'lines');
+    n.lines.forEach(l => {
+      const li = el('li');
+      li.appendChild(el('span', 'from', (l.sender ?? 'tu') + ': '));
+      li.appendChild(el('span', null, l.text));
+      lines.appendChild(li);
+    });
+    card.appendChild(lines);
+  }
+
+  const meta = el('div', 'meta');
+  if (n.facts.ongoing) meta.appendChild(el('span', 'tag', 'FLAG_ONGOING_EVENT'));
+  if (n.facts.groupSummary) meta.appendChild(el('span', 'tag', 'FLAG_GROUP_SUMMARY'));
+  if (n.facts.category === 'service') meta.appendChild(el('span', 'tag', 'CATEGORY_SERVICE'));
+  if (n.facts.isGroupConversation) meta.appendChild(el('span', 'tag', 'isGroupConversation'));
+  if (n.actions.some(a => a.reply)) meta.appendChild(el('span', 'tag', 'SEMANTIC_ACTION_REPLY'));
+  if (!src) meta.appendChild(el('span', 'tag', 'pacchetto non previsto'));
+  if (meta.childNodes.length) card.appendChild(meta);
+
+  card.appendChild(el('p', 'why', entry.note));
+
+  const foot = el('div', 'notif-foot');
+  const btn = el('button', 'btn', spent.has(entry.id) ? 'Ripubblica' : 'Pubblica');
+  btn.type = 'button';
+  btn.onclick = () => { onPosted(entry); render(); };
+  foot.appendChild(btn);
+
+  const v = verdicts[entry.id];
+  foot.appendChild(el('span', 'verdict' + (v ? ' ' + v.kind : ''), v ? v.text : ''));
+  card.appendChild(foot);
+  return card;
+}
+
+/* ---------- controlli ---------- */
+
+document.getElementById('reconnect').onclick = () => {
+  // Quello che fa Android in onListenerConnected: ripropone tutto ciò che è ancora a schermo.
+  SCRIPT.filter(e => e.live && spent.has(e.id) && !dismissed.has(convIdOf(e)))
+    .forEach(e => onPosted(e, {silent:true}));
+  render();
+};
+
+document.getElementById('dismiss').onclick = () => {
+  // onNotificationRemoved: con la notifica se ne va anche il PendingIntent di risposta.
+  repliable.delete(idFor(WA, 'Mamma'));
+  dismissed.add(idFor(WA, 'Mamma'));
+  render();
+};
+
+document.getElementById('reset').onclick = reset;
+
+reset();
+</script>

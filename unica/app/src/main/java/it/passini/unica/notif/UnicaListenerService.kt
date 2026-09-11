@@ -10,6 +10,7 @@ import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationCompat
 import it.passini.unica.data.ActiveChat
 import it.passini.unica.data.Conversation
+import it.passini.unica.data.Inbox
 import it.passini.unica.data.Message
 import it.passini.unica.data.MessageStore
 import it.passini.unica.data.Source
@@ -20,9 +21,13 @@ import it.passini.unica.data.Source
  * lets a notification listener read those and fire the action. That is enough for a
  * shared inbox: read here, reply through [ReplyRegistry].
  *
+ * This class is the Android-side reader only. What counts as a message, what a chat is
+ * called and which action can send text are decided by [NotificationRules], which runs
+ * anywhere and is exercised by `poc/`.
+ *
  * What this cannot do, by construction: see history from before Unica was installed,
- * see chats the user has muted to the point of posting no notification at all, or send
- * to someone who has not written first.
+ * see chats muted to the point of posting no notification at all, or send to someone who
+ * has not written first.
  */
 class UnicaListenerService : NotificationListenerService() {
 
@@ -46,22 +51,24 @@ class UnicaListenerService : NotificationListenerService() {
     private fun handle(sbn: StatusBarNotification) {
         val source = Source.fromPackage(sbn.packageName) ?: return
         val notification = sbn.notification
-        if (!isMessageNotification(notification)) return
 
         val style = runCatching {
             NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(notification)
         }.getOrNull()
 
-        val extras = notification.extras
-        val title = (style?.conversationTitle
-            ?: extras.getCharSequence(Notification.EXTRA_TITLE))
-            ?.toString()
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-            ?: return
+        val posted = NotificationRules.Posted(
+            isGroupSummary = notification.flags and Notification.FLAG_GROUP_SUMMARY != 0,
+            isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0,
+            category = notification.category,
+            conversationTitle = style?.conversationTitle?.toString(),
+            contentTitle = notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
+            isGroupConversation = style?.isGroupConversation == true,
+        )
 
-        val isGroup = style?.isGroupConversation == true || style?.conversationTitle != null
-        val messages = extractMessages(style, extras, sbn.postTime)
+        if (!NotificationRules.isMessage(posted)) return
+        val title = NotificationRules.conversationTitle(posted) ?: return
+
+        val messages = extractMessages(style, notification.extras, sbn.postTime)
         if (messages.isEmpty()) return
 
         val conversationId = Conversation.idFor(sbn.packageName, title)
@@ -71,24 +78,10 @@ class UnicaListenerService : NotificationListenerService() {
             source = source,
             packageName = sbn.packageName,
             title = title,
-            isGroup = isGroup,
+            isGroup = NotificationRules.isGroup(posted),
             incoming = messages,
             isActiveChat = ActiveChat.isOpen(conversationId),
         )
-    }
-
-    /**
-     * Both apps post plenty of non-message notifications — "WhatsApp is running",
-     * backup progress, the group summary that just counts chats. None of them belong
-     * in an inbox.
-     */
-    private fun isMessageNotification(notification: Notification): Boolean {
-        val flags = notification.flags
-        if (flags and Notification.FLAG_GROUP_SUMMARY != 0) return false
-        if (flags and Notification.FLAG_ONGOING_EVENT != 0) return false
-        if (notification.category == Notification.CATEGORY_SERVICE) return false
-        if (notification.category == Notification.CATEGORY_PROGRESS) return false
-        return true
     }
 
     private fun extractMessages(
@@ -106,7 +99,7 @@ class UnicaListenerService : NotificationListenerService() {
                     ?: style.user.name?.toString()
                     ?: ""
                 Message(
-                    id = MessageStore.messageId(entry.timestamp, sender, text),
+                    id = Inbox.messageId(entry.timestamp, sender, text),
                     sender = sender,
                     text = text,
                     timestamp = entry.timestamp,
@@ -121,7 +114,7 @@ class UnicaListenerService : NotificationListenerService() {
         val sender = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
         return listOf(
             Message(
-                id = MessageStore.messageId(postTime, sender, text),
+                id = Inbox.messageId(postTime, sender, text),
                 sender = sender,
                 text = text,
                 timestamp = postTime,
@@ -133,17 +126,19 @@ class UnicaListenerService : NotificationListenerService() {
         sbn: StatusBarNotification,
         notification: Notification,
     ): ReplyRegistry.LiveReply {
-        var replyAction: NotificationCompat.Action? = null
-        for (i in 0 until NotificationCompat.getActionCount(notification)) {
-            val action = NotificationCompat.getAction(notification, i) ?: continue
-            val freeForm = action.remoteInputs?.any { it.allowFreeFormInput } == true
-            if (!freeForm) continue
-            replyAction = action
-            // Prefer the action the app itself tagged as "reply" over any other text input.
-            if (action.semanticAction == NotificationCompat.Action.SEMANTIC_ACTION_REPLY) break
+        val actions = (0 until NotificationCompat.getActionCount(notification))
+            .map { NotificationCompat.getAction(notification, it) }
+
+        val facts = actions.map { action ->
+            NotificationRules.PostedAction(
+                hasFreeFormInput = action?.remoteInputs?.any { it.allowFreeFormInput } == true,
+                isReplySemantic = action?.semanticAction == NotificationCompat.Action.SEMANTIC_ACTION_REPLY,
+            )
         }
 
+        val replyAction = NotificationRules.pickReplyAction(facts)?.let { actions[it] }
         val inputs = replyAction?.remoteInputs?.toList().orEmpty()
+
         return ReplyRegistry.LiveReply(
             notificationKey = sbn.key,
             contentIntent = notification.contentIntent,

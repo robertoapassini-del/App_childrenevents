@@ -16,18 +16,13 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
- * The merged inbox, held in memory and mirrored to a JSON file in the app's private
- * storage. Nothing leaves the device: Unica has no network permission at all.
- *
- * Notifications are re-posted by both messengers every time a chat gets a new message,
- * and they carry the last few messages each time, so ingestion is idempotent: messages
- * are keyed by (timestamp, sender, text) and merged rather than appended.
+ * The merged inbox: [Inbox]'s rules wrapped in the state and storage a running app needs.
+ * Nothing leaves the device — Unica has no network permission at all — so "storage" is a
+ * JSON file in the app's private directory.
  */
 object MessageStore {
 
     private const val FILE_NAME = "inbox.json"
-    private const val MAX_MESSAGES_PER_CONVERSATION = 200
-    private const val MAX_CONVERSATIONS = 100
     private const val SAVE_DEBOUNCE_MS = 750L
 
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
@@ -54,16 +49,15 @@ object MessageStore {
             json.decodeFromString<List<Conversation>>(readText())
         }?.getOrNull() ?: return
         // Anything ingested while the file was being read wins over the stored copy.
-        if (_conversations.value.isEmpty()) _conversations.value = stored.sortedByDescending { it.lastTimestamp }
+        if (_conversations.value.isEmpty()) {
+            _conversations.value = stored.sortedByDescending { it.lastTimestamp }
+        }
     }
 
     fun messageId(timestamp: Long, sender: String, text: String): String =
-        "$timestamp|$sender|${text.hashCode()}"
+        Inbox.messageId(timestamp, sender, text)
 
-    /**
-     * Merges one notification's worth of messages into its conversation.
-     * Returns true when at least one message was genuinely new.
-     */
+    /** Returns true when at least one message was genuinely new. */
     fun ingest(
         source: Source,
         packageName: String,
@@ -72,41 +66,17 @@ object MessageStore {
         incoming: List<Message>,
         isActiveChat: Boolean,
     ): Boolean {
-        if (incoming.isEmpty()) return false
-        val id = Conversation.idFor(packageName, title)
         var added = false
-
         _conversations.mutate { current ->
-            val existing = current.firstOrNull { it.id == id }
-                ?: Conversation(id, source, packageName, title, isGroup)
-
-            val known = existing.messages.mapTo(HashSet()) { it.id }
-            val fresh = incoming.filter { known.add(it.id) }
-            added = fresh.isNotEmpty()
-            if (!added) return@mutate current
-
-            val merged = (existing.messages + fresh)
-                .sortedBy { it.timestamp }
-                .takeLast(MAX_MESSAGES_PER_CONVERSATION)
-
-            val updated = existing.copy(
-                title = title,
-                isGroup = isGroup,
-                messages = merged,
-                unread = if (isActiveChat) 0 else existing.unread + fresh.count { !it.outgoing },
-            )
-            (current.filterNot { it.id == id } + updated)
-                .sortedByDescending { it.lastTimestamp }
-                .take(MAX_CONVERSATIONS)
+            val result = Inbox.ingest(current, source, packageName, title, isGroup, incoming, isActiveChat)
+            added = result.added.isNotEmpty()
+            result.conversations
         }
         return added
     }
 
     fun markRead(conversationId: String) {
-        _conversations.mutate { current ->
-            if (current.none { it.id == conversationId && it.unread > 0 }) return@mutate current
-            current.map { if (it.id == conversationId) it.copy(unread = 0) else it }
-        }
+        _conversations.mutate { Inbox.markRead(it, conversationId) }
     }
 
     fun clear() {
@@ -115,7 +85,11 @@ object MessageStore {
         scope.launch { file?.delete() }
     }
 
-    /** Mutates the flow and schedules a debounced write; every write goes through here. */
+    /**
+     * Mutates the flow and schedules a debounced write; every write goes through here.
+     * [Inbox] hands back the list it was given when nothing changed, so an unchanged
+     * ingest costs no recomposition and no disk write.
+     */
     private fun MutableStateFlow<List<Conversation>>.mutate(block: (List<Conversation>) -> List<Conversation>) {
         synchronized(lock) {
             val next = block(value)

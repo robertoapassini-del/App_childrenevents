@@ -29,7 +29,7 @@ fun SourceBadge(source: Source, modifier: Modifier = Modifier) {
         fontWeight = FontWeight.Medium,
         modifier = modifier
             .clip(RoundedCornerShape(4.dp))
-            .background(source.accent)
+            .background(source.badgeFill)
             .padding(horizontal = 5.dp, vertical = 1.dp),
     )
 }
